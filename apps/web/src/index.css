@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-700 hover:bg-gray-600 text-white;
+  }
+
+  .card {
+    @apply bg-gray-800 rounded-lg border border-gray-700;
+  }
+
+  .odds-positive {
+    @apply text-positive font-semibold;
+  }
+
+  .odds-negative {
+    @apply text-white;
+  }
+
+  .best-odds {
+    @apply bg-green-900/30 border border-green-500/50;
+  }
+}
