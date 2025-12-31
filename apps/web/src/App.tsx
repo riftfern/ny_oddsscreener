@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/common/Layout';
 import OddsPage from '@/components/odds/OddsPage';
+import EVPage from '@/components/ev/EVPage';
 
 function App() {
   return (
@@ -8,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<OddsPage />} />
-          <Route path="ev" element={<div className="p-4">+EV Finder - Coming Soon</div>} />
+          <Route path="ev" element={<EVPage />} />
           <Route path="arb" element={<div className="p-4">Arbitrage Finder - Coming Soon</div>} />
           <Route path="exchanges" element={<div className="p-4">Exchanges - Coming Soon</div>} />
         </Route>

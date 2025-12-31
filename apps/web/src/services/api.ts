@@ -17,6 +17,9 @@ export interface OddsResponse {
 
 export interface EVResponse {
   opportunities: EVOpportunity[];
+  count: number;
+  scannedEvents: number;
+  minEV: number;
   lastUpdated: string;
 }
 

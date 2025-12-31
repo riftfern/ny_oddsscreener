@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import oddsRouter from './routes/odds.js';
+import evRouter from './routes/ev.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,16 +32,9 @@ app.get('/api/health', (_req, res) => {
 
 // Routes
 app.use('/api/odds', oddsRouter);
+app.use('/api/ev', evRouter);
 
 // Placeholder routes for future features
-app.get('/api/ev', (_req, res) => {
-  res.json({
-    opportunities: [],
-    lastUpdated: new Date().toISOString(),
-    message: '+EV finder coming soon',
-  });
-});
-
 app.get('/api/arbitrage', (_req, res) => {
   res.json({
     opportunities: [],
@@ -65,7 +59,7 @@ app.listen(PORT, () => {
   Available endpoints:
     GET /api/health     - Health check
     GET /api/odds       - Get odds (query: sport)
-    GET /api/ev         - Get +EV opportunities (coming soon)
+    GET /api/ev         - Get +EV opportunities (query: sport, minEV)
     GET /api/arbitrage  - Get arbitrage opportunities (coming soon)
   `);
 });
