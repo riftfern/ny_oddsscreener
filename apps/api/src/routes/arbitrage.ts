@@ -6,12 +6,12 @@ import { findArbitrageOpportunities } from '../services/arbFinder.js';
 
 const router: RouterType = Router();
 
-// GET /api/arbitrage?sport=all&minProfit=0.1&totalStake=100
+// GET /api/arbitrage?sport=all&minProfit=0.1&totalStake=100&live=true
 router.get('/', async (req, res) => {
   const sportParam = req.query.sport as string || 'all';
   const minProfit = parseFloat(req.query.minProfit as string) || 0.1;
   const totalStake = parseFloat(req.query.totalStake as string) || 100;
-  const useMock = req.query.mock === 'true';
+  const useLive = req.query.live === 'true' && !!process.env.THE_ODDS_API_KEY;
 
   try {
     // Determine which sports to scan
@@ -25,10 +25,10 @@ router.get('/', async (req, res) => {
     for (const sport of sportsToScan) {
       try {
         let events;
-        if (useMock || !process.env.THE_ODDS_API_KEY) {
-          events = getMockEvents(sport);
-        } else {
+        if (useLive) {
           events = await fetchOdds(sport);
+        } else {
+          events = getMockEvents(sport);
         }
         allEvents.push(...events);
       } catch (err) {

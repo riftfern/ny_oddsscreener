@@ -51,8 +51,10 @@ app.listen(PORT, () => {
 
   Available endpoints:
     GET /api/health     - Health check
-    GET /api/odds       - Get odds (query: sport)
-    GET /api/ev         - Get +EV opportunities (query: sport, minEV)
-    GET /api/arbitrage  - Get arbitrage opportunities (query: sport, minProfit)
+    GET /api/odds       - Get odds (query: sport, live)
+    GET /api/ev         - Get +EV opportunities (query: sport, minEV, live)
+    GET /api/arbitrage  - Get arbitrage opportunities (query: sport, minProfit, live)
+
+  Note: Using mock data by default. Add ?live=true for real API data.
   `);
 });

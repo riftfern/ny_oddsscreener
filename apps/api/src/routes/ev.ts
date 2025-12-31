@@ -6,11 +6,11 @@ import { findEVOpportunities } from '../services/evFinder.js';
 
 const router: RouterType = Router();
 
-// GET /api/ev?sport=all&minEV=1
+// GET /api/ev?sport=all&minEV=1&live=true
 router.get('/', async (req, res) => {
   const sportParam = req.query.sport as string || 'all';
   const minEV = parseFloat(req.query.minEV as string) || 1;
-  const useMock = req.query.mock === 'true';
+  const useLive = req.query.live === 'true' && !!process.env.THE_ODDS_API_KEY;
 
   try {
     // Determine which sports to scan
@@ -24,10 +24,10 @@ router.get('/', async (req, res) => {
     for (const sport of sportsToScan) {
       try {
         let events;
-        if (useMock || !process.env.THE_ODDS_API_KEY) {
-          events = getMockEvents(sport);
-        } else {
+        if (useLive) {
           events = await fetchOdds(sport);
+        } else {
+          events = getMockEvents(sport);
         }
         allEvents.push(...events);
       } catch (err) {

@@ -6,10 +6,10 @@ import { getMockEvents } from '../services/mockData.js';
 
 const router: RouterType = Router();
 
-// GET /api/odds?sport=americanfootball_nfl
+// GET /api/odds?sport=americanfootball_nfl&live=true
 router.get('/', async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
-  const useMock = req.query.mock === 'true';
+  const useLive = req.query.live === 'true' && !!process.env.THE_ODDS_API_KEY;
 
   // Validate sport key
   const validSports = Object.values(SPORTS);
@@ -24,17 +24,17 @@ router.get('/', async (req, res) => {
   try {
     let events;
 
-    if (useMock || !process.env.THE_ODDS_API_KEY) {
+    if (useLive) {
+      events = await fetchOdds(sport);
+    } else {
       console.log('Using mock data');
       events = getMockEvents(sport);
-    } else {
-      events = await fetchOdds(sport);
     }
 
     res.json({
       events,
       lastUpdated: new Date().toISOString(),
-      source: useMock || !process.env.THE_ODDS_API_KEY ? 'mock' : 'the-odds-api',
+      source: useLive ? 'the-odds-api' : 'mock',
     });
   } catch (error) {
     console.error('Error fetching odds:', error);
