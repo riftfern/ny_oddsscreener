@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/common/Layout';
 import OddsPage from '@/components/odds/OddsPage';
 import EVPage from '@/components/ev/EVPage';
+import ArbitragePage from '@/components/arb/ArbitragePage';
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<OddsPage />} />
           <Route path="ev" element={<EVPage />} />
-          <Route path="arb" element={<div className="p-4">Arbitrage Finder - Coming Soon</div>} />
+          <Route path="arb" element={<ArbitragePage />} />
           <Route path="exchanges" element={<div className="p-4">Exchanges - Coming Soon</div>} />
         </Route>
       </Routes>

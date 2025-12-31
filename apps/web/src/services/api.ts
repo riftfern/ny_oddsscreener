@@ -25,6 +25,10 @@ export interface EVResponse {
 
 export interface ArbitrageResponse {
   opportunities: ArbitrageOpportunity[];
+  count: number;
+  scannedEvents: number;
+  minProfit: number;
+  totalStake: number;
   lastUpdated: string;
 }
 
@@ -47,8 +51,12 @@ export const api = {
   /**
    * Fetch arbitrage opportunities
    */
-  getArbitrageOpportunities: (): Promise<ArbitrageResponse> => {
-    return fetchJson('/arbitrage');
+  getArbitrageOpportunities: (minProfit?: number, totalStake?: number): Promise<ArbitrageResponse> => {
+    const params = new URLSearchParams();
+    if (minProfit !== undefined) params.set('minProfit', minProfit.toString());
+    if (totalStake !== undefined) params.set('totalStake', totalStake.toString());
+    const queryString = params.toString();
+    return fetchJson(`/arbitrage${queryString ? `?${queryString}` : ''}`);
   },
 
   /**

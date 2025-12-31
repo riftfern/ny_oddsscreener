@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import oddsRouter from './routes/odds.js';
 import evRouter from './routes/ev.js';
+import arbitrageRouter from './routes/arbitrage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,15 +34,7 @@ app.get('/api/health', (_req, res) => {
 // Routes
 app.use('/api/odds', oddsRouter);
 app.use('/api/ev', evRouter);
-
-// Placeholder routes for future features
-app.get('/api/arbitrage', (_req, res) => {
-  res.json({
-    opportunities: [],
-    lastUpdated: new Date().toISOString(),
-    message: 'Arbitrage finder coming soon',
-  });
-});
+app.use('/api/arbitrage', arbitrageRouter);
 
 // 404 handler
 app.use((_req, res) => {
@@ -60,6 +53,6 @@ app.listen(PORT, () => {
     GET /api/health     - Health check
     GET /api/odds       - Get odds (query: sport)
     GET /api/ev         - Get +EV opportunities (query: sport, minEV)
-    GET /api/arbitrage  - Get arbitrage opportunities (coming soon)
+    GET /api/arbitrage  - Get arbitrage opportunities (query: sport, minProfit)
   `);
 });

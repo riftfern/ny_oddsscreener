@@ -16,9 +16,9 @@ export function useEVOpportunities(minEV?: number) {
   });
 }
 
-export function useArbitrageOpportunities() {
+export function useArbitrageOpportunities(minProfit?: number, totalStake?: number) {
   return useQuery({
-    queryKey: ['arbitrage'],
-    queryFn: () => api.getArbitrageOpportunities(),
+    queryKey: ['arbitrage', minProfit, totalStake],
+    queryFn: () => api.getArbitrageOpportunities(minProfit, totalStake),
   });
 }
