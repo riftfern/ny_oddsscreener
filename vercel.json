@@ -1,14 +1,9 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @ny-sharp-edge/web build",
+  "buildCommand": "pnpm run vercel-build",
   "outputDirectory": "dist",
-  "framework": "vite",
   "rewrites": [
-    { "source": "/api/odds", "destination": "/api/odds" },
-    { "source": "/api/ev", "destination": "/api/ev" },
-    { "source": "/api/arbitrage", "destination": "/api/arbitrage" },
-    { "source": "/api/health", "destination": "/api/health" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
