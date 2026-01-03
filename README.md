@@ -1,150 +1,117 @@
-# NY Sharp Edge
+# NY Sharp Edge 🍎📈
 
-A sportsbook odds screener and +EV betting tool for New York legal sportsbooks. Built with React, TypeScript, and Node.js.
+**A high-performance sportsbook odds screener and +EV betting tool engineered for the New York market.**
 
-## Features
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 
-- **Odds Comparison Dashboard**: Compare odds across all 9 NY legal sportsbooks
-- **Real-time Data**: Live odds from The Odds API with 30-second auto-refresh
-- **Best Odds Highlighting**: Instantly see which book has the best line
-- **Multi-Sport Support**: NFL, NBA, NHL, MLB
-- **EV Calculations**: Built-in utilities for expected value, no-vig odds, and Kelly Criterion
-- **Arbitrage Detection**: Algorithms to identify risk-free betting opportunities
+## 🚀 Overview
 
-## NY Legal Sportsbooks
+**NY Sharp Edge** is a full-stack real-time odds comparison platform designed to help bettors find an edge against the house. It aggregates lines from all 9 legal New York sportsbooks, identifying **Arbitrage** (guaranteed profit) and **+EV** (positive expected value) opportunities instantly.
 
-- FanDuel
-- DraftKings
-- BetMGM
-- Caesars
-- BetRivers
-- Fanatics
-- Bally Bet
-- bet365
-- theScore Bet
+Built as a **Turborepo monorepo**, it demonstrates modern web development practices including strict TypeScript typing, shared logic packages, and optimistic UI updates.
 
-## Tech Stack
+## ✨ Key Features
 
-**Frontend**
-- React 18
-- TypeScript
-- Vite
-- TanStack Query
-- Zustand
-- Tailwind CSS
+-   **⚡ Real-Time Odds Dashboard**: Compare moneyline, spread, and total odds across FanDuel, DraftKings, BetMGM, Caesars, and more.
+-   **💰 +EV Finder**: Automatically calculates "fair odds" by removing the vig (bookmaker fee) to identify mathematically profitable bets.
+-   **⚖️ Arbitrage Scanner**: Detects discrepancies between books to find risk-free guaranteed profit opportunities.
+-   **🎯 Best Line Highlighting**: Visual indicators for the best available odds for every outcome.
+-   **📱 Responsive Design**: Fully responsive UI built with Tailwind CSS.
 
-**Backend**
-- Node.js
-- Express
-- TypeScript
+## 🛠️ Tech Stack
 
-**Monorepo**
-- Turborepo
-- pnpm workspaces
+-   **Frontend**: React 18, TypeScript, Vite, TanStack Query, Zustand, Tailwind CSS.
+-   **Backend**: Node.js, Express, TypeScript.
+-   **Architecture**: Monorepo managed with **pnpm workspaces** and **Turborepo**.
+-   **Data**: Integration with [The Odds API](https://the-odds-api.com).
 
-## Project Structure
+## 🏁 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/riftfern/ny_oddsscreener.git
+cd ny_oddsscreener
+```
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Run in Mock Mode (Recommended for Portfolio Review)
+
+You can run the application immediately without an API key using the built-in mock data mode. This simulates real-time data updates and diverse market scenarios.
+
+**Start the development server:**
+
+```bash
+pnpm dev
+```
+
+*   **Frontend**: [http://localhost:3000](http://localhost:3000)
+*   **Backend**: [http://localhost:3001](http://localhost:3001)
+
+### 4. Run with Live Data (Optional)
+
+To see live odds, you will need a free API key from [The Odds API](https://the-odds-api.com).
+
+1.  Copy the environment file:
+    ```bash
+    cp apps/api/.env.example apps/api/.env
+    ```
+2.  Add your key to `apps/api/.env`:
+    ```
+    THE_ODDS_API_KEY=your_api_key_here
+    ```
+3.  Restart the server: `pnpm dev`
+
+## 📂 Project Structure
 
 ```
 ny_oddsscreener/
 ├── apps/
-│   ├── web/                 # React frontend
-│   │   └── src/
-│   │       ├── components/  # UI components
-│   │       ├── hooks/       # React Query hooks
-│   │       ├── stores/      # Zustand stores
-│   │       └── services/    # API client
-│   └── api/                 # Express backend
-│       └── src/
-│           ├── routes/      # API endpoints
-│           └── services/    # Odds API integration
+│   ├── web/                 # React frontend application
+│   │   ├── src/components/  # Modular UI components
+│   │   ├── src/hooks/       # Custom React Query hooks
+│   │   └── src/stores/      # Zustand global state
+│   └── api/                 # Node.js/Express backend
+│       ├── src/routes/      # REST API endpoints
+│       └── src/services/    # Business logic & API integration
 ├── packages/
-│   └── shared/              # Shared types and calculations
-│       └── src/
-│           ├── types/       # TypeScript definitions
-│           └── calculations/# EV, arbitrage, odds utilities
-├── turbo.json
-└── pnpm-workspace.yaml
+│   └── shared/              # Shared TypeScript types & math utilities
+│       ├── src/types/       # Common interfaces (Event, Market, Odds)
+│       └── src/calculations/# Core math (Arbitrage, EV, Kelly Criterion)
+└── turbo.json               # Build pipeline configuration
 ```
 
-## Getting Started
+## 🧠 Core Calculations
 
-### Prerequisites
+The `packages/shared` library handles the heavy lifting for betting math:
 
-- Node.js 18+
-- pnpm
+*   **No-Vig Fair Odds**: Calculates the true probability of an outcome by removing the bookmaker's margin (vigorish).
+*   **Kelly Criterion**: Suggests optimal stake sizes based on bankroll and edge.
+*   **Implied Probability**: Converts American odds to percentage probabilities.
 
-### Installation
+## 🔮 Roadmap
 
-```bash
-# Clone the repository
-git clone https://github.com/riftfern/ny_oddsscreener.git
-cd ny_oddsscreener
+-   [x] Odds comparison dashboard
+-   [x] Mock data simulation engine
+-   [x] +EV bet finder
+-   [x] Arbitrage finder
+-   [ ] Historical odds tracking
+-   [ ] User authentication & bankroll management
+-   [ ] Push notifications for high-value arbs
 
-# Install dependencies
-pnpm install
-
-# Set up environment variables
-cp apps/api/.env.example apps/api/.env
-# Add your API keys to apps/api/.env
-```
-
-### Environment Variables
-
-```
-THE_ODDS_API_KEY=your_key_here
-```
-
-Get a free API key at https://the-odds-api.com (500 requests/month on free tier).
-
-### Development
-
-```bash
-# Start both frontend and backend
-pnpm dev
-```
-
-- Frontend: http://localhost:3000
-- API: http://localhost:3001
-
-### API Endpoints
-
-```
-GET /api/health              # Health check
-GET /api/odds?sport=<sport>  # Get odds for a sport
-GET /api/ev                  # Get +EV opportunities (coming soon)
-GET /api/arbitrage           # Get arbitrage opportunities (coming soon)
-```
-
-**Supported Sports:**
-- `americanfootball_nfl`
-- `basketball_nba`
-- `baseball_mlb`
-- `icehockey_nhl`
-
-## Calculations
-
-The shared package includes utilities for:
-
-- **Odds Conversion**: American to decimal, implied probability
-- **No-Vig Fair Odds**: Remove the vig to find true probabilities
-- **Expected Value**: Calculate EV percentage and edge
-- **Kelly Criterion**: Optimal stake sizing
-- **Arbitrage Detection**: Find guaranteed profit opportunities
-
-## Roadmap
-
-- [x] Odds comparison dashboard
-- [x] The Odds API integration
-- [ ] +EV bet finder
-- [ ] Arbitrage finder
-- [ ] Kalshi/Polymarket integration
-- [ ] Bet tracking
-- [ ] Push notifications
-
-## License
+## 📄 License
 
 MIT
 
-## Author
+---
 
-Jack (@riftfern)
+*Built by Jack (@riftfern)*

@@ -1,7 +1,7 @@
 import { Router, type Router as RouterType } from 'express';
 import { SPORTS, type SportKey } from '@ny-sharp-edge/shared';
 import { fetchOdds } from '../services/oddsApi.js';
-import { getMockEvents } from '../services/mockData.js';
+import { getMockArbitrageOpportunities } from '../services/mockData.js';
 import { findArbitrageOpportunities } from '../services/arbFinder.js';
 
 const router: RouterType = Router();
@@ -14,6 +14,21 @@ router.get('/', async (req, res) => {
   const useLive = req.query.live === 'true' && !!process.env.THE_ODDS_API_KEY;
 
   try {
+    // If not in live mode, use the guaranteed mock opportunities
+    if (!useLive) {
+      const opportunities = getMockArbitrageOpportunities();
+      return res.json({
+        opportunities,
+        count: opportunities.length,
+        scannedEvents: 0, // Not applicable for direct mock data
+        minProfit,
+        totalStake,
+        lastUpdated: new Date().toISOString(),
+      });
+    }
+
+    // --- Live Mode Logic ---
+
     // Determine which sports to scan
     const sportsToScan: SportKey[] = sportParam === 'all'
       ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
@@ -24,18 +39,14 @@ router.get('/', async (req, res) => {
 
     for (const sport of sportsToScan) {
       try {
-        let events;
-        if (useLive) {
-          events = await fetchOdds(sport);
-        } else {
-          events = getMockEvents(sport);
-        }
+        const events = await fetchOdds(sport);
         allEvents.push(...events);
       } catch (err) {
         // Continue with other sports if one fails
         console.error(`Failed to fetch ${sport}:`, err);
       }
     }
+
 
     // Find arbitrage opportunities
     const opportunities = findArbitrageOpportunities(allEvents, { minProfit, totalStake });

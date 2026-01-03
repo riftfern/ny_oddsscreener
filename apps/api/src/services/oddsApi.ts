@@ -1,5 +1,6 @@
 import type { Event, SportKey, BookOdds, MarketOutcome, Market, SportsbookId } from '@ny-sharp-edge/shared';
 import { SPORTSBOOKS } from '@ny-sharp-edge/shared';
+import { getMockEvents } from './mockData';
 
 const BASE_URL = 'https://api.the-odds-api.com/v4';
 
@@ -162,6 +163,14 @@ function transformToEvent(apiEvent: OddsApiEvent): Event {
 }
 
 export async function fetchOdds(sport: SportKey): Promise<Event[]> {
+  // Return mock data if USE_MOCK_DATA is true
+  if (process.env.USE_MOCK_DATA === 'true') {
+    console.log(`Using mock data for ${sport}.`);
+    // Use a timeout to simulate network latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return getMockEvents(sport);
+  }
+
   const apiKey = getApiKey();
   if (!apiKey) {
     throw new Error('THE_ODDS_API_KEY is not configured');
