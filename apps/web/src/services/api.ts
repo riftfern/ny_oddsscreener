@@ -1,6 +1,15 @@
 import type { Event, SportKey, EVOpportunity, ArbitrageOpportunity } from '@ny-sharp-edge/shared';
+import { 
+  getMockEvents, 
+  getMockEVOpportunities, 
+  getMockArbitrageOpportunities 
+} from '@ny-sharp-edge/shared';
 
 const API_BASE = '/api';
+
+// Use mock data by default if VITE_USE_MOCK_DATA is true or not set (for demo safety)
+// To use real backend, set VITE_USE_MOCK_DATA=false
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`);
@@ -9,6 +18,9 @@ async function fetchJson<T>(url: string): Promise<T> {
   }
   return response.json();
 }
+
+// Helper to simulate network delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface OddsResponse {
   events: Event[];
@@ -36,14 +48,37 @@ export const api = {
   /**
    * Fetch odds for a specific sport
    */
-  getOdds: (sport: SportKey): Promise<OddsResponse> => {
+  getOdds: async (sport: SportKey): Promise<OddsResponse> => {
+    if (USE_MOCK) {
+      console.log(`Using client-side mock data for ${sport}`);
+      await delay(600); // Simulate network latency
+      return {
+        events: getMockEvents(sport),
+        lastUpdated: new Date().toISOString(),
+      };
+    }
     return fetchJson(`/odds?sport=${sport}`);
   },
 
   /**
    * Fetch +EV opportunities
    */
-  getEVOpportunities: (minEV?: number): Promise<EVResponse> => {
+  getEVOpportunities: async (minEV?: number): Promise<EVResponse> => {
+    if (USE_MOCK) {
+      await delay(800);
+      const allOpportunities = getMockEVOpportunities();
+      const filtered = minEV 
+        ? allOpportunities.filter(o => o.evPercentage >= minEV)
+        : allOpportunities;
+        
+      return {
+        opportunities: filtered,
+        count: filtered.length,
+        scannedEvents: 50, // Mock value
+        minEV: minEV || 0,
+        lastUpdated: new Date().toISOString(),
+      };
+    }
     const params = minEV ? `?minEV=${minEV}` : '';
     return fetchJson(`/ev${params}`);
   },
@@ -51,7 +86,23 @@ export const api = {
   /**
    * Fetch arbitrage opportunities
    */
-  getArbitrageOpportunities: (minProfit?: number, totalStake?: number): Promise<ArbitrageResponse> => {
+  getArbitrageOpportunities: async (minProfit?: number, totalStake?: number): Promise<ArbitrageResponse> => {
+    if (USE_MOCK) {
+      await delay(800);
+      const allOpportunities = getMockArbitrageOpportunities();
+      const filtered = minProfit
+        ? allOpportunities.filter(o => o.profitPercentage >= minProfit)
+        : allOpportunities;
+
+      return {
+        opportunities: filtered,
+        count: filtered.length,
+        scannedEvents: 50, // Mock value
+        minProfit: minProfit || 0,
+        totalStake: totalStake || 100,
+        lastUpdated: new Date().toISOString(),
+      };
+    }
     const params = new URLSearchParams();
     if (minProfit !== undefined) params.set('minProfit', minProfit.toString());
     if (totalStake !== undefined) params.set('totalStake', totalStake.toString());
@@ -62,7 +113,8 @@ export const api = {
   /**
    * Health check
    */
-  health: (): Promise<{ status: string }> => {
+  health: async (): Promise<{ status: string }> => {
+    if (USE_MOCK) return { status: 'ok (mock)' };
     return fetchJson('/health');
   },
 };
