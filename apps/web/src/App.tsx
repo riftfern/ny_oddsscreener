@@ -12,7 +12,6 @@ function App() {
           <Route index element={<OddsPage />} />
           <Route path="ev" element={<EVPage />} />
           <Route path="arb" element={<ArbitragePage />} />
-          <Route path="exchanges" element={<div className="p-4">Exchanges - Coming Soon</div>} />
         </Route>
       </Routes>
     </BrowserRouter>
