@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pwd; ls -la; pnpm run vercel-build; ls -la apps/web/; ls -la apps/web/dist/ || echo 'no dist folder'",
+  "buildCommand": "pnpm --filter @ny-sharp-edge/web run build",
   "outputDirectory": "apps/web/dist",
   "framework": null,
   "rewrites": [
