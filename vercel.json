@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pwd && ls -la && pnpm run vercel-build && ls -la apps/web/",
+  "buildCommand": "pwd; ls -la; pnpm run vercel-build; ls -la apps/web/; ls -la apps/web/dist/ || echo 'no dist folder'",
   "outputDirectory": "apps/web/dist",
   "framework": null,
   "rewrites": [
