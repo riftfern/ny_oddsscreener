@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd apps/web && pnpm run build && ls -la && ls -la dist/",
+  "buildCommand": "pnpm --filter @ny-sharp-edge/shared run build && pnpm --filter @ny-sharp-edge/web run build",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
