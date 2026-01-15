@@ -7,9 +7,9 @@ import {
 
 const API_BASE = '/api';
 
-// Use mock data by default if VITE_USE_MOCK_DATA is true or not set (for demo safety)
-// To use real backend, set VITE_USE_MOCK_DATA=false
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+// Use live API by default to show full stack in action
+// Set VITE_USE_MOCK_DATA=true to use client-side mock data instead
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`);
