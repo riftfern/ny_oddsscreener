@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @ny-sharp-edge/web run build",
+  "buildCommand": "cd apps/web && pnpm run build && cp -r dist ../../",
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
