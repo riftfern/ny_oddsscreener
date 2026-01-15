@@ -18,11 +18,7 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
-  api:
-    dependencies:
-      '@ny-sharp-edge/shared':
-        specifier: workspace:*
-        version: link:../packages/shared
+  api: {}
 
   apps/api:
     dependencies:
