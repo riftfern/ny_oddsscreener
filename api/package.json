@@ -1,8 +1,5 @@
 {
   "name": "@ny-sharp-edge/vercel-api",
   "private": true,
-  "type": "module",
-  "dependencies": {
-    "@ny-sharp-edge/shared": "workspace:*"
-  }
+  "type": "module"
 }
