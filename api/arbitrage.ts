@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getMockArbitrageOpportunities } from './lib/mockData.js';
+import { getMockArbitrageOpportunities } from './lib/mockData';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS

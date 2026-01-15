@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import type { SportKey } from './lib/types.js';
-import { SPORTS } from './lib/types.js';
-import { getMockEvents } from './lib/mockData.js';
+import type { SportKey } from './lib/types';
+import { SPORTS } from './lib/types';
+import { getMockEvents } from './lib/mockData';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS

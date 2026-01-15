@@ -1,5 +1,5 @@
-import type { Event, SportKey, BookOdds, MarketOutcome, SportsbookId, EVOpportunity, ArbitrageOpportunity } from './types.js';
-import { SPORTS, SPORTSBOOKS } from './types.js';
+import type { Event, SportKey, BookOdds, MarketOutcome, SportsbookId, EVOpportunity, ArbitrageOpportunity } from './types';
+import { SPORTS, SPORTSBOOKS } from './types';
 
 const NY_BOOKS: SportsbookId[] = Object.values(SPORTSBOOKS);
 
