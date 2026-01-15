@@ -1,7 +1,7 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm run vercel-build && ls -la && ls -la apps/web/ && mv apps/web/dist dist",
-  "outputDirectory": "dist",
+  "buildCommand": "pwd && ls -la && pnpm run vercel-build && ls -la apps/web/",
+  "outputDirectory": "apps/web/dist",
   "framework": null,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
