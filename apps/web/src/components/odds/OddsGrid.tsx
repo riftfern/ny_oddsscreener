@@ -1,6 +1,7 @@
 import type { Event, SportsbookId, MarketType, BookOdds } from '@ny-sharp-edge/shared';
 import { SPORTSBOOK_INFO, formatAmerican } from '@ny-sharp-edge/shared';
 import { useOddsStore } from '@/stores/oddsStore';
+import { useBetslipStore } from '@/stores/betslipStore';
 
 interface OddsGridProps {
   events: Event[];
@@ -94,7 +95,7 @@ interface MarketRowsProps {
   displayedBooks: SportsbookId[];
 }
 
-function MarketRows({ marketType, outcomes, displayedBooks }: MarketRowsProps) {
+function MarketRows({ event, marketType, outcomes, displayedBooks }: MarketRowsProps) {
   const marketLabel =
     marketType === 'h2h' ? 'Moneyline' : marketType === 'spreads' ? 'Spread' : 'Total';
 
@@ -117,7 +118,14 @@ function MarketRows({ marketType, outcomes, displayedBooks }: MarketRowsProps) {
             return (
               <td key={bookId} className="text-center px-2 py-2">
                 {bookOdd ? (
-                  <OddsCell odds={bookOdd} isBest={isBest} showLine={marketType !== 'h2h'} />
+                  <OddsCell
+                    event={event}
+                    marketType={marketType}
+                    outcomeName={outcome.name}
+                    odds={bookOdd}
+                    isBest={isBest}
+                    showLine={marketType !== 'h2h'}
+                  />
                 ) : (
                   <span className="text-gray-600">-</span>
                 )}
@@ -145,18 +153,46 @@ function MarketRows({ marketType, outcomes, displayedBooks }: MarketRowsProps) {
 }
 
 interface OddsCellProps {
+  event: Event;
+  marketType: MarketType;
+  outcomeName: string;
   odds: BookOdds;
   isBest: boolean;
   showLine: boolean;
 }
 
-function OddsCell({ odds, isBest, showLine }: OddsCellProps) {
+function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine }: OddsCellProps) {
+  const addBet = useBetslipStore((state) => state.addBet);
+  const bets = useBetslipStore((state) => state.bets);
+
   const formattedOdds = formatAmerican(odds.odds);
   const isPositive = odds.odds > 0;
 
+  // Check if this exact bet is already in the slip
+  const isInSlip = bets.some(
+    (b) => b.eventId === event.id && b.bookId === odds.bookId && b.outcomeName === outcomeName
+  );
+
+  const handleClick = () => {
+    addBet({
+      eventId: event.id,
+      event,
+      marketType,
+      outcomeName,
+      bookId: odds.bookId,
+      odds: odds.odds,
+      line: odds.line,
+    });
+  };
+
   return (
-    <div
-      className={`rounded px-2 py-1 ${isBest ? 'bg-green-900/30 border border-green-500/50' : ''}`}
+    <button
+      onClick={handleClick}
+      className={`
+        rounded px-2 py-1 w-full transition-all duration-150
+        ${isBest ? 'bg-green-900/30 border border-green-500/50' : 'hover:bg-gray-600'}
+        ${isInSlip ? 'ring-2 ring-blue-500 bg-blue-900/30' : ''}
+      `}
     >
       {showLine && odds.line !== undefined && (
         <div className="text-xs text-gray-400">{odds.line > 0 ? `+${odds.line}` : odds.line}</div>
@@ -164,6 +200,9 @@ function OddsCell({ odds, isBest, showLine }: OddsCellProps) {
       <span className={`text-sm font-medium ${isPositive ? 'text-green-400' : 'text-white'}`}>
         {formattedOdds}
       </span>
-    </div>
+      {isInSlip && (
+        <div className="text-xs text-blue-400 mt-0.5">Added</div>
+      )}
+    </button>
   );
 }

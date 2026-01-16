@@ -18,18 +18,19 @@ export interface Sportsbook {
   name: string;
   shortName: string;
   color: string;
+  deepLink: string;
 }
 
 export const SPORTSBOOK_INFO: Record<SportsbookId, Sportsbook> = {
-  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: '#1493ff' },
-  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: '#53d337' },
-  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: '#c4a932' },
-  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: '#0a4833' },
-  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: '#1a73e8' },
-  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: '#000000' },
-  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: '#e31837' },
-  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: '#027b5b' },
-  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00' },
+  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: '#1493ff', deepLink: 'https://sportsbook.fanduel.com' },
+  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: '#53d337', deepLink: 'https://sportsbook.draftkings.com' },
+  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: '#c4a932', deepLink: 'https://sports.betmgm.com' },
+  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: '#0a4833', deepLink: 'https://sportsbook.caesars.com' },
+  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: '#1a73e8', deepLink: 'https://ny.betrivers.com' },
+  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: '#000000', deepLink: 'https://sportsbook.fanatics.com' },
+  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: '#e31837', deepLink: 'https://www.ballybet.com' },
+  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: '#027b5b', deepLink: 'https://www.bet365.com' },
+  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00', deepLink: 'https://thescore.bet' },
 };
 
 // Sports
@@ -141,4 +142,18 @@ export interface OddsFilter {
   date: 'today' | 'tomorrow' | 'week';
   marketType: MarketType | 'all';
   books: SportsbookId[];
+}
+
+// Betslip Types
+export interface BetSelection {
+  id: string;
+  eventId: string;
+  event: Event;
+  marketType: MarketType;
+  outcomeName: string;
+  bookId: SportsbookId;
+  odds: AmericanOdds;
+  line?: number;
+  stake: number;
+  addedAt: string;
 }

@@ -1,4 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
+import { Betslip, BetslipToggle } from '../betslip';
 
 const navItems = [
   { path: '/', label: 'Odds' },
@@ -61,6 +62,10 @@ export default function Layout() {
           </div>
         </div>
       </footer>
+
+      {/* Betslip */}
+      <BetslipToggle />
+      <Betslip />
     </div>
   );
 }
