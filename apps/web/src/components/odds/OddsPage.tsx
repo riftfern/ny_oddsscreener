@@ -1,7 +1,7 @@
 import { useOdds } from '@/hooks/useOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
-import OddsGrid from './OddsGrid';
+import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
 import { SPORT_INFO } from '@ny-sharp-edge/shared';
 
 export default function OddsPage() {
@@ -66,12 +66,7 @@ export default function OddsPage() {
       </div>
 
       {/* Content */}
-      {isLoading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-600 border-t-blue-500"></div>
-          <p className="mt-4 text-gray-400">Loading {sportName} odds...</p>
-        </div>
-      )}
+      {isLoading && <OddsGridSkeleton />}
 
       {error && (
         <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">

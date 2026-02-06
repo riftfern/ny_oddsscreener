@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import type { BetSelection, SportsbookId, Event, MarketType, AmericanOdds } from '@ny-sharp-edge/shared';
 
 interface BetslipStore {
@@ -33,33 +34,32 @@ const generateId = () => `bet_${Date.now()}_${Math.random().toString(36).substr(
 const betExists = (bets: BetSelection[], eventId: string, bookId: SportsbookId, outcomeName: string) =>
   bets.some((b) => b.eventId === eventId && b.bookId === bookId && b.outcomeName === outcomeName);
 
-export const useBetslipStore = create<BetslipStore>((set, get) => ({
+export const useBetslipStore = create<BetslipStore>((set) => ({
   bets: [],
   isOpen: false,
   activeTab: null,
 
   addBet: (betData) => {
-    const { bets } = get();
+    set((state) => {
+      // Atomic duplicate check inside the updater to prevent
+      // React 18 StrictMode double-mount race conditions
+      if (betExists(state.bets, betData.eventId, betData.bookId, betData.outcomeName)) {
+        return { isOpen: true };
+      }
 
-    // Don't add duplicate bets
-    if (betExists(bets, betData.eventId, betData.bookId, betData.outcomeName)) {
-      // Open panel to show existing bet
-      set({ isOpen: true });
-      return;
-    }
+      const newBet: BetSelection = {
+        ...betData,
+        id: generateId(),
+        stake: 0,
+        addedAt: new Date().toISOString(),
+      };
 
-    const newBet: BetSelection = {
-      ...betData,
-      id: generateId(),
-      stake: 0,
-      addedAt: new Date().toISOString(),
-    };
-
-    set((state) => ({
-      bets: [...state.bets, newBet],
-      isOpen: true,
-      activeTab: betData.bookId,
-    }));
+      return {
+        bets: [...state.bets, newBet],
+        isOpen: true,
+        activeTab: betData.bookId,
+      };
+    });
   },
 
   removeBet: (betId) =>
@@ -107,10 +107,10 @@ export const useBetslipStore = create<BetslipStore>((set, get) => ({
 
 // Selector hooks for common computations
 export const useBetsByBook = (bookId: SportsbookId) =>
-  useBetslipStore((state) => state.bets.filter((b) => b.bookId === bookId));
+  useBetslipStore(useShallow((state) => state.bets.filter((b) => b.bookId === bookId)));
 
 export const useBooksWithBets = () =>
-  useBetslipStore((state) => [...new Set(state.bets.map((b) => b.bookId))]);
+  useBetslipStore(useShallow((state) => [...new Set(state.bets.map((b) => b.bookId))]));
 
 export const useTotalBets = () =>
   useBetslipStore((state) => state.bets.length);

@@ -15,13 +15,97 @@ const DISPLAYED_BOOKS: SportsbookId[] = [
   'betrivers',
 ];
 
+const SKELETON_CARDS = 4;
+const SKELETON_MARKETS = 3;
+const SKELETON_ROWS_PER_MARKET = 2;
+
+function Shimmer({ className }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse rounded bg-gray-700/50 ${className ?? ''}`}
+    />
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="rounded-xl border border-gray-700/60 bg-gray-800/70 shadow-lg overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-3.5 border-b border-gray-700/40 bg-gray-800/80">
+        <div className="flex items-center justify-between">
+          <Shimmer className="h-4 w-48" />
+          <Shimmer className="h-3 w-28" />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-700/30">
+              <th className="px-5 py-2.5 w-24 text-left">
+                <Shimmer className="h-3 w-12" />
+              </th>
+              {DISPLAYED_BOOKS.map((bookId) => (
+                <th key={bookId} className="px-1.5 py-2.5 w-20">
+                  <Shimmer className="h-5 w-10 mx-auto rounded-md" />
+                </th>
+              ))}
+              <th className="px-1.5 py-2.5 w-20">
+                <Shimmer className="h-5 w-10 mx-auto rounded-md" />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: SKELETON_MARKETS }).map((_, mIdx) => (
+              Array.from({ length: SKELETON_ROWS_PER_MARKET }).map((_, rIdx) => (
+                <tr
+                  key={`${mIdx}-${rIdx}`}
+                  className={
+                    rIdx === SKELETON_ROWS_PER_MARKET - 1 && mIdx < SKELETON_MARKETS - 1
+                      ? 'border-b border-gray-700/30'
+                      : ''
+                  }
+                >
+                  {rIdx === 0 && (
+                    <td rowSpan={SKELETON_ROWS_PER_MARKET} className="px-5 py-2 align-middle">
+                      <Shimmer className="h-3.5 w-16" />
+                    </td>
+                  )}
+                  {DISPLAYED_BOOKS.map((bookId) => (
+                    <td key={bookId} className="px-1.5 py-1.5 text-center">
+                      <Shimmer className="h-8 w-full rounded-lg" />
+                    </td>
+                  ))}
+                  <td className="px-1.5 py-1.5 text-center">
+                    <Shimmer className="h-8 w-14 mx-auto rounded-lg" />
+                  </td>
+                </tr>
+              ))
+            )).flat()}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export function OddsGridSkeleton() {
+  return (
+    <div className="space-y-5">
+      {Array.from({ length: SKELETON_CARDS }).map((_, i) => (
+        <SkeletonCard key={i} />
+      ))}
+    </div>
+  );
+}
+
 export default function OddsGrid({ events }: OddsGridProps) {
   const { filter } = useOddsStore();
-
   const displayedBooks = DISPLAYED_BOOKS.filter((b) => filter.books.includes(b));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {events.map((event) => (
         <EventCard key={event.id} event={event} displayedBooks={displayedBooks} />
       ))}
@@ -44,16 +128,16 @@ function EventCard({ event, displayedBooks }: EventCardProps) {
   });
 
   return (
-    <div className="card overflow-hidden">
+    <div className="rounded-xl border border-gray-700/60 bg-gray-800/70 shadow-lg overflow-hidden backdrop-blur-sm">
       {/* Event Header */}
-      <div className="bg-gray-700/50 px-4 py-3 border-b border-gray-700">
+      <div className="px-5 py-3.5 border-b border-gray-700/40 bg-gray-800/80">
         <div className="flex items-center justify-between">
-          <div>
-            <span className="font-semibold text-white">
-              {event.awayTeam} @ {event.homeTeam}
-            </span>
-          </div>
-          <span className="text-sm text-gray-400">{gameTime}</span>
+          <h3 className="font-semibold text-[15px] text-white tracking-tight">
+            {event.awayTeam}
+            <span className="mx-2 text-gray-500 font-normal text-sm">@</span>
+            {event.homeTeam}
+          </h3>
+          <span className="text-xs text-gray-400 tabular-nums">{gameTime}</span>
         </div>
       </div>
 
@@ -61,24 +145,45 @@ function EventCard({ event, displayedBooks }: EventCardProps) {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="text-xs text-gray-400 uppercase">
-              <th className="text-left px-4 py-2 w-24">Market</th>
-              {displayedBooks.map((bookId) => (
-                <th key={bookId} className="text-center px-2 py-2 w-20">
-                  {SPORTSBOOK_INFO[bookId].shortName}
-                </th>
-              ))}
-              <th className="text-center px-2 py-2 w-20 text-green-400">Best</th>
+            <tr className="border-b border-gray-700/30">
+              <th className="text-left px-5 py-2.5 w-24">
+                <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+                  Market
+                </span>
+              </th>
+              {displayedBooks.map((bookId) => {
+                const book = SPORTSBOOK_INFO[bookId];
+                return (
+                  <th key={bookId} className="px-1.5 py-2.5 w-20">
+                    <span
+                      className="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-[11px] font-semibold tracking-wide"
+                      style={{
+                        backgroundColor: `${book.color}18`,
+                        color: book.color,
+                        border: `1px solid ${book.color}30`,
+                      }}
+                    >
+                      {book.shortName}
+                    </span>
+                  </th>
+                );
+              })}
+              <th className="px-1.5 py-2.5 w-20">
+                <span className="inline-flex items-center justify-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-400 tracking-wide">
+                  Best
+                </span>
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
-            {event.markets.map((market) => (
+          <tbody>
+            {event.markets.map((market, marketIdx) => (
               <MarketRows
                 key={market.type}
                 event={event}
                 marketType={market.type}
                 outcomes={market.outcomes}
                 displayedBooks={displayedBooks}
+                isLast={marketIdx === event.markets.length - 1}
               />
             ))}
           </tbody>
@@ -93,19 +198,29 @@ interface MarketRowsProps {
   marketType: MarketType;
   outcomes: Event['markets'][0]['outcomes'];
   displayedBooks: SportsbookId[];
+  isLast: boolean;
 }
 
-function MarketRows({ event, marketType, outcomes, displayedBooks }: MarketRowsProps) {
+function MarketRows({ event, marketType, outcomes, displayedBooks, isLast }: MarketRowsProps) {
   const marketLabel =
     marketType === 'h2h' ? 'Moneyline' : marketType === 'spreads' ? 'Spread' : 'Total';
 
   return (
     <>
       {outcomes.map((outcome, idx) => (
-        <tr key={`${marketType}-${idx}`} className="hover:bg-gray-700/30">
-          {/* Market label only on first row */}
+        <tr
+          key={`${marketType}-${idx}`}
+          className={`
+            transition-colors hover:bg-white/[0.02]
+            ${idx === outcomes.length - 1 && !isLast ? 'border-b border-gray-700/30' : ''}
+          `}
+        >
+          {/* Market label on first row */}
           {idx === 0 ? (
-            <td rowSpan={outcomes.length} className="px-4 py-2 text-sm text-gray-400 align-top">
+            <td
+              rowSpan={outcomes.length}
+              className="px-5 py-2 text-[13px] font-medium text-gray-400 align-middle"
+            >
               {marketLabel}
             </td>
           ) : null}
@@ -116,7 +231,7 @@ function MarketRows({ event, marketType, outcomes, displayedBooks }: MarketRowsP
             const isBest = outcome.bestOdds?.bookId === bookId;
 
             return (
-              <td key={bookId} className="text-center px-2 py-2">
+              <td key={bookId} className="px-1.5 py-1.5 text-center">
                 {bookOdd ? (
                   <OddsCell
                     event={event}
@@ -127,22 +242,25 @@ function MarketRows({ event, marketType, outcomes, displayedBooks }: MarketRowsP
                     showLine={marketType !== 'h2h'}
                   />
                 ) : (
-                  <span className="text-gray-600">-</span>
+                  <span className="text-gray-600 text-sm">-</span>
                 )}
               </td>
             );
           })}
 
           {/* Best odds column */}
-          <td className="text-center px-2 py-2">
+          <td className="px-1.5 py-1.5 text-center">
             {outcome.bestOdds && (
-              <div className="bg-green-900/30 rounded px-2 py-1">
-                <span className="text-green-400 font-semibold text-sm">
+              <div className="inline-flex flex-col items-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 min-w-[56px]">
+                <span className="text-sm font-bold text-emerald-400 tabular-nums">
                   {formatAmerican(outcome.bestOdds.odds)}
                 </span>
-                <div className="text-xs text-gray-400">
+                <span
+                  className="text-[10px] font-medium mt-0.5"
+                  style={{ color: SPORTSBOOK_INFO[outcome.bestOdds.bookId].color }}
+                >
                   {SPORTSBOOK_INFO[outcome.bestOdds.bookId].shortName}
-                </div>
+                </span>
               </div>
             )}
           </td>
@@ -168,12 +286,13 @@ function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine }: Od
   const formattedOdds = formatAmerican(odds.odds);
   const isPositive = odds.odds > 0;
 
-  // Check if this exact bet is already in the slip
   const isInSlip = bets.some(
     (b) => b.eventId === event.id && b.bookId === odds.bookId && b.outcomeName === outcomeName
   );
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isInSlip) return;
     addBet({
       eventId: event.id,
       event,
@@ -187,22 +306,33 @@ function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine }: Od
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       className={`
-        rounded px-2 py-1 w-full transition-all duration-150
-        ${isBest ? 'bg-green-900/30 border border-green-500/50' : 'hover:bg-gray-600'}
-        ${isInSlip ? 'ring-2 ring-blue-500 bg-blue-900/30' : ''}
+        group relative rounded-lg px-2 py-1.5 w-full text-center
+        transition-all duration-150 ease-out
+        ${
+          isBest
+            ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20'
+            : 'hover:bg-gray-700/50'
+        }
+        ${isInSlip ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''}
       `}
     >
       {showLine && odds.line !== undefined && (
-        <div className="text-xs text-gray-400">{odds.line > 0 ? `+${odds.line}` : odds.line}</div>
+        <div className="text-[11px] text-gray-500 leading-tight">
+          {odds.line > 0 ? `+${odds.line}` : odds.line}
+        </div>
       )}
-      <span className={`text-sm font-medium ${isPositive ? 'text-green-400' : 'text-white'}`}>
+      <span
+        className={`
+          text-sm font-semibold tabular-nums
+          ${isBest ? 'text-emerald-400' : isPositive ? 'text-emerald-400' : 'text-gray-200'}
+        `}
+      >
         {formattedOdds}
       </span>
-      {isInSlip && (
-        <div className="text-xs text-blue-400 mt-0.5">Added</div>
-      )}
+      {isInSlip && <div className="text-[10px] text-blue-400 font-medium mt-0.5">Added</div>}
     </button>
   );
 }

@@ -1,8 +1,36 @@
-import type { Event, SportKey, BookOdds, MarketOutcome, Market, SportsbookId } from '@ny-sharp-edge/shared';
-import { SPORTSBOOKS } from '@ny-sharp-edge/shared';
-import { getMockEvents } from './mockData';
+import type { Event, SportKey, BookOdds, MarketOutcome, Market, SportsbookId, EVOpportunity, ArbitrageOpportunity } from '@ny-sharp-edge/shared';
+import { SPORTSBOOKS, SPORTS, getMockEvents, getMockEVOpportunities, getMockArbitrageOpportunities } from '@ny-sharp-edge/shared';
+import { findEVOpportunities } from './evFinder.js';
+import { findArbitrageOpportunities } from './arbFinder.js';
 
 const BASE_URL = 'https://api.the-odds-api.com/v4';
+
+function useMockData(): boolean {
+  return process.env.USE_MOCK_DATA === 'true';
+}
+
+// Response interfaces matching frontend expectations
+export interface OddsResponse {
+  events: Event[];
+  lastUpdated: string;
+}
+
+export interface EVResponse {
+  opportunities: EVOpportunity[];
+  count: number;
+  scannedEvents: number;
+  minEV: number;
+  lastUpdated: string;
+}
+
+export interface ArbitrageResponse {
+  opportunities: ArbitrageOpportunity[];
+  count: number;
+  scannedEvents: number;
+  minProfit: number;
+  totalStake: number;
+  lastUpdated: string;
+}
 
 function getApiKey(): string | undefined {
   return process.env.THE_ODDS_API_KEY;
@@ -163,11 +191,8 @@ function transformToEvent(apiEvent: OddsApiEvent): Event {
 }
 
 export async function fetchOdds(sport: SportKey): Promise<Event[]> {
-  // Return mock data if USE_MOCK_DATA is true
-  if (process.env.USE_MOCK_DATA === 'true') {
-    console.log(`Using mock data for ${sport}.`);
-    // Use a timeout to simulate network latency
-    await new Promise(resolve => setTimeout(resolve, 500));
+  if (useMockData()) {
+    console.log(`[mock] Returning mock events for ${sport}`);
     return getMockEvents(sport);
   }
 
@@ -201,6 +226,96 @@ export async function fetchOdds(sport: SportKey): Promise<Event[]> {
   const data: OddsApiEvent[] = await response.json();
 
   return data.map(transformToEvent);
+}
+
+export async function fetchOddsResponse(sport: SportKey): Promise<OddsResponse> {
+  const events = await fetchOdds(sport);
+  return {
+    events,
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+export async function fetchEVResponse(options: { sport?: string; minEV?: number }): Promise<EVResponse> {
+  const { sport = 'all', minEV = 1 } = options;
+
+  if (useMockData()) {
+    console.log('[mock] Returning mock EV opportunities');
+    const opportunities = getMockEVOpportunities();
+    const filtered = opportunities.filter(o => o.evPercentage >= minEV);
+    return {
+      opportunities: filtered,
+      count: filtered.length,
+      scannedEvents: 0,
+      minEV,
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+
+  const sportsToScan: SportKey[] = sport === 'all'
+    ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
+    : [sport as SportKey];
+
+  const allEvents: Event[] = [];
+  for (const s of sportsToScan) {
+    try {
+      const events = await fetchOdds(s);
+      allEvents.push(...events);
+    } catch (err) {
+      console.error(`Failed to fetch ${s}:`, err);
+    }
+  }
+
+  const opportunities = findEVOpportunities(allEvents, { minEV });
+  return {
+    opportunities,
+    count: opportunities.length,
+    scannedEvents: allEvents.length,
+    minEV,
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+export async function fetchArbitrageResponse(options: { sport?: string; minProfit?: number; totalStake?: number }): Promise<ArbitrageResponse> {
+  const { sport = 'all', minProfit = 0.1, totalStake = 100 } = options;
+
+  if (useMockData()) {
+    console.log('[mock] Returning mock arbitrage opportunities');
+    const opportunities = getMockArbitrageOpportunities();
+    const filtered = opportunities.filter(o => o.profitPercentage >= minProfit);
+    return {
+      opportunities: filtered,
+      count: filtered.length,
+      scannedEvents: 0,
+      minProfit,
+      totalStake,
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+
+  const sportsToScan: SportKey[] = sport === 'all'
+    ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
+    : [sport as SportKey];
+
+  const allEvents: Event[] = [];
+  for (const s of sportsToScan) {
+    try {
+      const events = await fetchOdds(s);
+      allEvents.push(...events);
+    } catch (err) {
+      console.error(`Failed to fetch ${s}:`, err);
+    }
+  }
+
+  const opportunities = findArbitrageOpportunities(allEvents, { minProfit, totalStake });
+  return {
+    opportunities,
+    count: opportunities.length,
+    scannedEvents: allEvents.length,
+    minProfit,
+    totalStake,
+    lastUpdated: new Date().toISOString(),
+  };
 }
 
 export async function getAvailableSports(): Promise<{ key: string; title: string; active: boolean }[]> {

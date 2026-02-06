@@ -1,17 +1,14 @@
 import { Router, type Router as RouterType } from 'express';
 import type { SportKey } from '@ny-sharp-edge/shared';
 import { SPORTS } from '@ny-sharp-edge/shared';
-import { fetchOdds } from '../services/oddsApi.js';
-import { getMockEvents } from '../services/mockData.js';
+import { fetchOddsResponse } from '../services/oddsApi.js';
 
 const router: RouterType = Router();
 
-// GET /api/odds?sport=americanfootball_nfl&live=true
+// GET /api/odds?sport=americanfootball_nfl
 router.get('/', async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
-  const useLive = req.query.live === 'true' && !!process.env.THE_ODDS_API_KEY;
 
-  // Validate sport key
   const validSports = Object.values(SPORTS);
   if (!validSports.includes(sport)) {
     res.status(400).json({
@@ -22,30 +19,13 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    let events;
-
-    if (useLive) {
-      events = await fetchOdds(sport);
-    } else {
-      console.log('Using mock data');
-      events = getMockEvents(sport);
-    }
-
-    res.json({
-      events,
-      lastUpdated: new Date().toISOString(),
-      source: useLive ? 'the-odds-api' : 'mock',
-    });
+    const data = await fetchOddsResponse(sport);
+    res.json(data);
   } catch (error) {
     console.error('Error fetching odds:', error);
-
-    // Fallback to mock data on error
-    const events = getMockEvents(sport);
-    res.json({
-      events,
-      lastUpdated: new Date().toISOString(),
-      source: 'mock (fallback)',
-      error: error instanceof Error ? error.message : 'Unknown error',
+    res.status(500).json({
+      error: 'Failed to fetch odds',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
