@@ -13,6 +13,45 @@ export const SPORTSBOOKS = {
 
 export type SportsbookId = (typeof SPORTSBOOKS)[keyof typeof SPORTSBOOKS];
 
+// --- Venue catalog (data-driven books/exchanges/prediction markets) ---
+export type VenueKind = 'sportsbook' | 'exchange' | 'prediction';
+export type RegionKey = 'us' | 'us2' | 'us_ex' | 'uk' | 'eu' | 'au';
+
+export interface Venue {
+  id: string;            // Odds API bookmaker key, e.g. 'pinnacle', 'kalshi'
+  name: string;
+  shortName: string;
+  color: string;
+  deepLink: string;
+  kind: VenueKind;
+  regions: RegionKey[];
+  isSharp?: boolean;     // pinnacle, and later circa / exchanges
+}
+
+// Every book we may show, keyed by Odds API bookmaker key. Kept alongside
+// SPORTSBOOKS for now; SPORTSBOOKS is migrated off later (Task 1.6+).
+export const VENUES: Record<string, Venue> = {
+  // US retail books
+  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: '#1493ff', deepLink: 'https://sportsbook.fanduel.com', kind: 'sportsbook', regions: ['us'] },
+  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: '#53d337', deepLink: 'https://sportsbook.draftkings.com', kind: 'sportsbook', regions: ['us'] },
+  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: '#c4a932', deepLink: 'https://sports.betmgm.com', kind: 'sportsbook', regions: ['us'] },
+  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: '#0a4833', deepLink: 'https://sportsbook.caesars.com', kind: 'sportsbook', regions: ['us'] },
+  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: '#1a73e8', deepLink: 'https://betrivers.com', kind: 'sportsbook', regions: ['us'] },
+  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: '#000000', deepLink: 'https://sportsbook.fanatics.com', kind: 'sportsbook', regions: ['us'] },
+  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: '#e31837', deepLink: 'https://www.ballybet.com', kind: 'sportsbook', regions: ['us'] },
+  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00', deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
+  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: '#027b5b', deepLink: 'https://www.bet365.com', kind: 'sportsbook', regions: ['eu'] },
+  // US books from other regions / non-NY legal
+  bovada: { id: 'bovada', name: 'Bovada', shortName: 'BOV', color: '#cc0000', deepLink: 'https://www.bovada.lv', kind: 'sportsbook', regions: ['us'] },
+  lowvig: { id: 'lowvig', name: 'LowVig', shortName: 'LV', color: '#6b7280', deepLink: 'https://www.lowvig.ag', kind: 'sportsbook', regions: ['us'] },
+  espnbet: { id: 'espnbet', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00', deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
+  // Sharp books (fair line)
+  pinnacle: { id: 'pinnacle', name: 'Pinnacle', shortName: 'PIN', color: '#d4af37', deepLink: 'https://www.pinnacle.com', kind: 'sportsbook', regions: ['eu'], isSharp: true },
+  // Prediction markets
+  kalshi: { id: 'kalshi', name: 'Kalshi', shortName: 'KAL', color: '#00d4aa', deepLink: 'https://kalshi.com', kind: 'prediction', regions: ['us_ex'] },
+  polymarket: { id: 'polymarket', name: 'Polymarket', shortName: 'PM', color: '#0066ff', deepLink: 'https://polymarket.com', kind: 'prediction', regions: ['us_ex'] },
+};
+
 export interface Sportsbook {
   id: SportsbookId;
   name: string;
@@ -75,7 +114,7 @@ export interface OddsValue {
 }
 
 export interface BookOdds {
-  bookId: SportsbookId;
+  bookId: string; // Odds API / VENUES key, e.g. 'fanduel', 'pinnacle'
   odds: AmericanOdds;
   line?: number; // For spreads/totals
   updatedAt: string;
@@ -108,7 +147,7 @@ export interface EVOpportunity {
   event: Event;
   marketType: MarketType;
   outcomeName: string;
-  bookId: SportsbookId;
+  bookId: string; // widened: may be a sharp/exchange/prediction key
   bookOdds: AmericanOdds;
   fairOdds: AmericanOdds;
   fairProbability: ImpliedProbability;
@@ -130,7 +169,7 @@ export interface ArbitrageOpportunity {
 
 export interface ArbitrageLeg {
   outcomeName: string;
-  bookId: SportsbookId;
+  bookId: string; // widened: may be a sharp/exchange/prediction key
   odds: AmericanOdds;
   stakeRatio: number;
   suggestedStake: number;
