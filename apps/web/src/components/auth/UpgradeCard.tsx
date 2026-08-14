@@ -1,5 +1,4 @@
 import { useCheckout } from '@/hooks/useCheckout';
-import type { Plan } from './AuthProvider';
 
 type UpgradablePlan = 'edge' | 'pro';
 
@@ -8,16 +7,11 @@ interface UpgradeCardProps {
   title?: string;
 }
 
-const PLAN_COPY: Record<Plan, { name: string; price: string; description: string }> = {
-  free: {
+const PLAN_COPY: Record<UpgradablePlan, { name: string; price: string; description: string }> = {
+  edge: {
     name: 'Edge',
     price: '$19/mo',
     description: 'Live US books, +EV vs Pinnacle, 6 sports.',
-  },
-  edge: {
-    name: 'Pro',
-    price: '$49/mo',
-    description: 'Everything in Edge plus arbitrage and Kalshi/Polymarket.',
   },
   pro: {
     name: 'Pro',

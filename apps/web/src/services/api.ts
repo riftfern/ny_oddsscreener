@@ -13,8 +13,25 @@ export class ApiError extends Error {
   }
 }
 
+let getAuthToken: (() => Promise<string | null>) | undefined;
+
+export function setAuthTokenProvider(provider: () => Promise<string | null>): void {
+  getAuthToken = provider;
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  if (getAuthToken) {
+    const token = await getAuthToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${url}`);
+  const response = await fetch(`${API_BASE}${url}`, {
+    headers: await authHeaders(),
+  });
   if (!response.ok) {
     const body = await response.json().catch(() => ({ error: 'unknown' }));
     throw new ApiError(`API error: ${response.status} ${response.statusText}`, response.status, body);
@@ -75,7 +92,7 @@ export const api = {
   createCheckoutSession: async (plan: 'edge' | 'pro'): Promise<{ url?: string; error?: string }> => {
     const response = await fetch(`${API_BASE}/billing/checkout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
       body: JSON.stringify({ plan }),
     });
     if (!response.ok) {

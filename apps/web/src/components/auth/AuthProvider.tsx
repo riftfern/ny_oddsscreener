@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import {
   ClerkProvider,
   useUser,
@@ -7,6 +7,7 @@ import {
   SignedOut,
   RedirectToSignIn,
 } from '@clerk/clerk-react';
+import { setAuthTokenProvider } from '@/services/api';
 
 export type Plan = 'free' | 'edge' | 'pro';
 
@@ -33,6 +34,12 @@ function ClerkPlanResolver({ children }: { children: ReactNode }) {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const plan = isValidPlan(user?.publicMetadata?.plan) ? user.publicMetadata.plan : 'free';
+
+  useEffect(() => {
+    if (getToken) {
+      setAuthTokenProvider(getToken);
+    }
+  }, [getToken]);
 
   return (
     <PlanContext.Provider value={{ plan, isLoaded, getToken }}>

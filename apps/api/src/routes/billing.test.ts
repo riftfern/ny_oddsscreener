@@ -35,6 +35,38 @@ describe('billing routes', () => {
     expect(res.body.error).toBe('billing_not_configured');
   });
 
+  it('checkout rejects priceId and requires a plan', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
+    process.env.STRIPE_PRICE_EDGE = 'edge_plan_test';
+    process.env.FRONTEND_URL = 'http://localhost:3000';
+    const app = createApp();
+
+    const priceIdRes = await supertest(app)
+      .post('/api/billing/checkout')
+      .send({ priceId: 'direct_id' });
+    expect(priceIdRes.status).toBe(400);
+    expect(priceIdRes.body.error).toBe('invalid_body');
+
+    const missingRes = await supertest(app)
+      .post('/api/billing/checkout')
+      .send({});
+    expect(missingRes.status).toBe(400);
+    expect(missingRes.body.error).toBe('missing_plan');
+  });
+
+  it('checkout requires FRONTEND_URL when Origin is absent', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
+    process.env.STRIPE_PRICE_EDGE = 'edge_plan_test';
+    delete process.env.FRONTEND_URL;
+    const app = createApp();
+
+    const res = await supertest(app)
+      .post('/api/billing/checkout')
+      .send({ plan: 'edge' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('missing_frontend_url');
+  });
+
   it('webhook returns 400 for a garbage signature', async () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_fake';

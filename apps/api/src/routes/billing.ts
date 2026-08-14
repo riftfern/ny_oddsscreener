@@ -51,7 +51,7 @@ function billingNotConfigured(res: Response): void {
 }
 
 // POST /api/billing/checkout
-// Body: { plan: 'edge' | 'pro' } or { priceId: string }
+// Body: { plan: 'edge' | 'pro' }
 router.post('/checkout', async (req, res) => {
   const stripe = stripeClient();
   if (!stripe) {
@@ -65,33 +65,38 @@ router.post('/checkout', async (req, res) => {
     return;
   }
 
-  let priceId: string | undefined;
-  let plan: Plan | undefined;
-
   if (typeof req.body.priceId === 'string') {
-    priceId = req.body.priceId;
-  } else if (isValidPlan(req.body.plan)) {
-    plan = req.body.plan;
-    priceId = priceIdForPlan(plan);
-  }
-
-  if (!priceId) {
-    res.status(400).json({ error: 'missing_price', message: 'Provide priceId or a valid plan' });
+    res.status(400).json({ error: 'invalid_body', message: 'Use { plan: "edge" | "pro" }' });
     return;
   }
 
-  const baseUrl = process.env.VITE_API_URL?.replace('/api', '').replace(/\/$/, '') ?? '';
-  // In local dev without an explicit API URL, fall back to the origin the request came from.
-  const origin = baseUrl || `${req.protocol}://${req.get('host')}`;
+  if (!isValidPlan(req.body.plan)) {
+    res.status(400).json({ error: 'missing_plan', message: 'Provide a valid plan ("edge" or "pro")' });
+    return;
+  }
+
+  const plan = req.body.plan;
+  const priceId = priceIdForPlan(plan);
+
+  if (!priceId) {
+    res.status(400).json({ error: 'missing_price', message: `Stripe price for ${plan} is not configured` });
+    return;
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL || (req.headers.origin as string | undefined);
+  if (!frontendUrl) {
+    res.status(400).json({ error: 'missing_frontend_url', message: 'FRONTEND_URL is not configured' });
+    return;
+  }
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/app?checkout=success`,
-      cancel_url: `${origin}/`,
+      success_url: `${frontendUrl}/app?checkout=success`,
+      cancel_url: `${frontendUrl}/`,
       client_reference_id: userId ?? undefined,
-      metadata: plan ? { plan } : undefined,
+      metadata: { plan },
     });
 
     res.json({ url: session.url });
