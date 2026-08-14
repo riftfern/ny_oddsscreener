@@ -1,118 +1,64 @@
-# NY Sharp Edge 🍎📈
+# NY Sharp Edge
 
-**A high-performance sportsbook odds screener and +EV betting tool engineered for the New York market.**
+A sportsbook odds screener that finds +EV lines against a sharp fair line.
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ny-oddsscreener-api.vercel.app/) 
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+- **Edge** — $19/mo: live US books, +EV vs Pinnacle, 6 sports.
+- **Pro** — $49/mo: everything in Edge plus arbitrage and Kalshi/Polymarket exchange lines.
 
-## 🚀 Overview
+Built with React, Vite, Express, TypeScript, TanStack Query, Zustand, and Tailwind CSS.
 
-**NY Sharp Edge** is a full-stack real-time odds comparison platform designed to help bettors find an edge against the house. It aggregates lines from all 9 legal New York sportsbooks, identifying **Arbitrage** (guaranteed profit) and **+EV** (positive expected value) opportunities instantly.
+## What it does
 
-Built as a **Turborepo monorepo**, it demonstrates modern web development practices including strict TypeScript typing, shared logic packages, and optimistic UI updates.
+- Compares moneyline, spread, and total odds across US sportsbooks.
+- Computes +EV opportunities against a Pinnacle no-vig fair line — not against the best soft-book line.
+- Scans for arbitrage opportunities across books.
+- Shows Kalshi and Polymarket lines on the Pro exchange screen.
 
-## ✨ Key Features
-
--   **⚡ Real-Time Odds Dashboard**: Compare moneyline, spread, and total odds across FanDuel, DraftKings, BetMGM, Caesars, and more.
--   **💰 +EV Finder**: Automatically calculates "fair odds" by removing the vig (bookmaker fee) to identify mathematically profitable bets.
--   **⚖️ Arbitrage Scanner**: Detects discrepancies between books to find risk-free guaranteed profit opportunities.
--   **🎯 Best Line Highlighting**: Visual indicators for the best available odds for every outcome.
--   **📱 Responsive Design**: Fully responsive UI built with Tailwind CSS.
-
-## 🛠️ Tech Stack
-
--   **Frontend**: React 18, TypeScript, Vite, TanStack Query, Zustand, Tailwind CSS.
--   **Backend**: Node.js, Express, TypeScript.
--   **Architecture**: Monorepo managed with **pnpm workspaces** and **Turborepo**.
--   **Data**: Integration with [The Odds API](https://the-odds-api.com).
-
-## 🏁 Getting Started
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/riftfern/ny_oddsscreener.git
-cd ny_oddsscreener
-```
-
-### 2. Install Dependencies
+## Run locally (mock mode)
 
 ```bash
 pnpm install
+USE_MOCK_DATA=true REQUIRE_AUTH=false DEV_PLAN=pro pnpm dev
 ```
 
-### 3. Run in Mock Mode (Recommended for Portfolio Review)
+- Web: http://localhost:3000
+- API: http://localhost:3001
 
-You can run the application immediately without an API key using the built-in mock data mode. This simulates real-time data updates and diverse market scenarios.
+## Configure Clerk and Stripe
 
-**Start the development server:**
+Copy the example env files:
 
 ```bash
-pnpm dev
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
 ```
 
-*   **Frontend**: [http://localhost:3000](http://localhost:3000)
-*   **Backend**: [http://localhost:3001](http://localhost:3001)
-
-### 4. Run with Live Data (Optional)
-
-To see live odds, you will need a free API key from [The Odds API](https://the-odds-api.com).
-
-1.  Copy the environment file:
-    ```bash
-    cp apps/api/.env.example apps/api/.env
-    ```
-2.  Add your key to `apps/api/.env`:
-    ```
-    THE_ODDS_API_KEY=your_api_key_here
-    ```
-3.  Restart the server: `pnpm dev`
-
-## 📂 Project Structure
+Add your keys:
 
 ```
-ny_oddsscreener/
-├── apps/
-│   ├── web/                 # React frontend application
-│   │   ├── src/components/  # Modular UI components
-│   │   ├── src/hooks/       # Custom React Query hooks
-│   │   └── src/stores/      # Zustand global state
-│   └── api/                 # Node.js/Express backend
-│       ├── src/routes/      # REST API endpoints
-│       └── src/services/    # Business logic & API integration
-├── packages/
-│   └── shared/              # Shared TypeScript types & math utilities
-│       ├── src/types/       # Common interfaces (Event, Market, Odds)
-│       └── src/calculations/# Core math (Arbitrage, EV, Kelly Criterion)
-└── turbo.json               # Build pipeline configuration
+# apps/api/.env
+THE_ODDS_API_KEY=your_key_here
+REQUIRE_AUTH=true
+CLERK_SECRET_KEY=sk_...
+STRIPE_SECRET_KEY=sk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_EDGE=price_...
+STRIPE_PRICE_PRO=price_...
+
+# apps/web/.env
+VITE_CLERK_PUBLISHABLE_KEY=pk_...
+VITE_REQUIRE_AUTH=true
+VITE_API_URL=http://localhost:3001
 ```
 
-## 🧠 Core Calculations
+Create the Stripe products and prices in the Stripe Dashboard, then paste the price ids into the env files. The webhook endpoint is `POST /api/billing/webhook` and must receive the raw request body.
 
-The `packages/shared` library handles the heavy lifting for betting math:
+## Important notes
 
-*   **No-Vig Fair Odds**: Calculates the true probability of an outcome by removing the bookmaker's margin (vigorish).
-*   **Kelly Criterion**: Suggests optimal stake sizes based on bankroll and edge.
-*   **Implied Probability**: Converts American odds to percentage probabilities.
+- 18+ only. Not gambling advice. Odds can move and lines can be pulled at any time. No guaranteed profit. Arbitrage is theoretical until both legs clear.
+- The in-memory odds cache is per-process. For production, run `apps/api` as a single long-lived Node process; do not rely on serverless cold starts for caching.
+- Keep `us_ex` off `ODDS_REGIONS`. Exchanges are fetched separately via `/api/odds/exchanges` so Edge users do not pay for Pro-only data.
 
-## 🔮 Roadmap
-
--   [x] Odds comparison dashboard
--   [x] Mock data simulation engine
--   [x] +EV bet finder
--   [x] Arbitrage finder
--   [ ] Historical odds tracking
--   [ ] User authentication & bankroll management
--   [ ] Push notifications for high-value arbs
-
-## 📄 License
+## License
 
 MIT
-
----
-
-*Built by Jack (@riftfern)*

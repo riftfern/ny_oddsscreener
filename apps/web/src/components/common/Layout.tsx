@@ -71,10 +71,14 @@ export default function Layout() {
       {/* Footer */}
       <footer className="bg-gray-800 border-t border-gray-700 mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between text-sm text-gray-400">
-            <span>Portfolio Project by Jack (@riftfern)</span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm text-gray-400">
+            <span>NY Sharp Edge — information product, not a sportsbook</span>
             <span>Data refreshes every 45 seconds</span>
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            18+ only. Not gambling advice. Odds can move and lines can be pulled at any time.
+            No guaranteed profit. Arbitrage is theoretical until both legs clear.
+          </p>
         </div>
       </footer>
 
