@@ -15,7 +15,8 @@ const defaultFilter: OddsFilter = {
   sport: SPORTS.NFL,
   date: 'today',
   marketType: 'all',
-  books: Object.values(SPORTSBOOKS),
+  // Include Pinnacle so the fair-line column is visible by default.
+  books: [...Object.values(SPORTSBOOKS), 'pinnacle'],
 };
 
 export const useOddsStore = create<OddsStore>((set) => ({

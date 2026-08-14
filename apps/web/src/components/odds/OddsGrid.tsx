@@ -104,9 +104,14 @@ export function OddsGridSkeleton() {
 
 export default function OddsGrid({ events, displayedBooks: displayedBooksProp }: OddsGridProps) {
   const { filter } = useOddsStore();
-  const displayedBooks = (displayedBooksProp ?? DEFAULT_DISPLAYED_BOOKS).filter((b) =>
-    filter.books.includes(b)
-  );
+  // Exchanges page passes its own book list — use it as-is.
+  // Odds page defaults include Pinnacle (the fair-line column) even when the
+  // book filter is the legacy NY retail list.
+  const displayedBooks = displayedBooksProp
+    ? displayedBooksProp
+    : DEFAULT_DISPLAYED_BOOKS.filter(
+        (b) => filter.books.includes(b) || b === 'pinnacle'
+      );
 
   return (
     <div className="space-y-5">
