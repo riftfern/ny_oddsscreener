@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useArbitrageOpportunities } from '@/hooks/useOdds';
 import ArbitrageOpportunityCard from './ArbitrageOpportunityCard';
 import PlanGate from '@/components/auth/PlanGate';
+import UpgradeCard from '@/components/auth/UpgradeCard';
+import { ApiError } from '@/services/api';
 
 const MIN_PROFIT_OPTIONS = [0.1, 0.5, 1, 2, 3];
 const STAKE_OPTIONS = [100, 500, 1000, 5000];
@@ -91,7 +93,11 @@ export default function ArbitragePage() {
         </div>
       )}
 
-      {error && (
+      {error && error instanceof ApiError && error.status === 402 && (
+        <UpgradeCard requiredPlan="pro" title="Upgrade to Pro to use the arbitrage finder" />
+      )}
+
+      {error && !(error instanceof ApiError && error.status === 402) && (
         <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
           <p className="text-red-400">
             Failed to load arbitrage opportunities. Make sure the API server is running.

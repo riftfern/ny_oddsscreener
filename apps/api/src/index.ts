@@ -7,6 +7,7 @@ import oddsRouter from './routes/odds.js';
 import evRouter from './routes/ev.js';
 import arbitrageRouter from './routes/arbitrage.js';
 import billingRouter from './routes/billing.js';
+import { requirePlan } from './middleware/plan.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,8 +40,8 @@ app.get('/api/health', (_req, res) => {
 
 // Routes
 app.use('/api/odds', oddsRouter);
-app.use('/api/ev', evRouter);
-app.use('/api/arbitrage', arbitrageRouter);
+app.use('/api/ev', requirePlan('edge'), evRouter);
+app.use('/api/arbitrage', requirePlan('pro'), arbitrageRouter);
 app.use('/api/billing', billingRouter);
 
 // 404 handler

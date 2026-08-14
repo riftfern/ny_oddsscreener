@@ -3,6 +3,8 @@ import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
 import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
 import PlanGate from '@/components/auth/PlanGate';
+import UpgradeCard from '@/components/auth/UpgradeCard';
+import { ApiError } from '@/services/api';
 import { SPORT_INFO, type MarketType } from '@ny-sharp-edge/shared';
 
 export default function OddsPage() {
@@ -69,7 +71,11 @@ export default function OddsPage() {
       {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
-      {error && (
+      {error && error instanceof ApiError && error.status === 402 && (
+        <UpgradeCard requiredPlan="edge" title="Upgrade to Edge to view live odds" />
+      )}
+
+      {error && !(error instanceof ApiError && error.status === 402) && (
         <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
           <p className="text-red-400">
             Failed to load odds. Make sure the API server is running.

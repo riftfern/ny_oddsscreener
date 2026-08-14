@@ -3,6 +3,8 @@ import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from '@/components/odds/SportSelector';
 import OddsGrid, { OddsGridSkeleton } from '@/components/odds/OddsGrid';
 import PlanGate from '@/components/auth/PlanGate';
+import UpgradeCard from '@/components/auth/UpgradeCard';
+import { ApiError } from '@/services/api';
 import { VENUES, SPORT_INFO, type Event, type VenueKind } from '@ny-sharp-edge/shared';
 
 const EXCHANGE_KINDS: VenueKind[] = ['prediction', 'exchange'];
@@ -77,7 +79,11 @@ export default function ExchangesPage() {
       {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
-      {error && (
+      {error && error instanceof ApiError && error.status === 402 && (
+        <UpgradeCard requiredPlan="pro" title="Upgrade to Pro to view Kalshi and Polymarket lines" />
+      )}
+
+      {error && !(error instanceof ApiError && error.status === 402) && (
         <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
           <p className="text-red-400">
             Failed to load exchange odds. Make sure the API server is running.

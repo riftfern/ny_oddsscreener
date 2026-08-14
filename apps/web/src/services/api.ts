@@ -2,10 +2,22 @@ import type { Event, SportKey, EVOpportunity, ArbitrageOpportunity } from '@ny-s
 
 const API_BASE = `${import.meta.env.VITE_API_URL ?? ''}/api`;
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly body: unknown
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`);
   if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    const body = await response.json().catch(() => ({ error: 'unknown' }));
+    throw new ApiError(`API error: ${response.status} ${response.statusText}`, response.status, body);
   }
   return response.json();
 }

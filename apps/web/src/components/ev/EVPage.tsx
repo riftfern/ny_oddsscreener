@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useEVOpportunities } from '@/hooks/useOdds';
 import EVOpportunityCard from './EVOpportunityCard';
 import PlanGate from '@/components/auth/PlanGate';
+import UpgradeCard from '@/components/auth/UpgradeCard';
+import { ApiError } from '@/services/api';
 
 const MIN_EV_OPTIONS = [0.5, 1, 2, 3, 5];
 
@@ -70,7 +72,11 @@ export default function EVPage() {
         </div>
       )}
 
-      {error && (
+      {error && error instanceof ApiError && error.status === 402 && (
+        <UpgradeCard requiredPlan="edge" title="Upgrade to Edge to use the +EV finder" />
+      )}
+
+      {error && !(error instanceof ApiError && error.status === 402) && (
         <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
           <p className="text-red-400">
             Failed to load +EV opportunities. Make sure the API server is running.

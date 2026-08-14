@@ -2,11 +2,12 @@ import { Router, type Router as RouterType } from 'express';
 import type { SportKey } from '@ny-sharp-edge/shared';
 import { SPORTS } from '@ny-sharp-edge/shared';
 import { fetchOddsResponse, fetchExchangeOddsResponse } from '../services/oddsApi.js';
+import { requirePlan } from '../middleware/plan.js';
 
 const router: RouterType = Router();
 
 // GET /api/odds?sport=americanfootball_nfl
-router.get('/', async (req, res) => {
+router.get('/', requirePlan('edge'), async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
 
   const validSports = Object.values(SPORTS);
@@ -31,7 +32,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/odds/exchanges?sport=basketball_nba
-router.get('/exchanges', async (req, res) => {
+router.get('/exchanges', requirePlan('pro'), async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
 
   const validSports = Object.values(SPORTS);
