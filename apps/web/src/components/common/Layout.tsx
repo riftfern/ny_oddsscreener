@@ -42,7 +42,7 @@ export default function Layout() {
 
             {/* Right side (future: settings, notifications) */}
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-400">NY Legal Books Only</span>
+              <span className="text-sm text-gray-400">US + Pinnacle</span>
             </div>
           </div>
         </div>

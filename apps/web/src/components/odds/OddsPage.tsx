@@ -2,10 +2,10 @@ import { useOdds } from '@/hooks/useOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
 import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
-import { SPORT_INFO } from '@ny-sharp-edge/shared';
+import { SPORT_INFO, type MarketType } from '@ny-sharp-edge/shared';
 
 export default function OddsPage() {
-  const { filter } = useOddsStore();
+  const { filter, setMarketType } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
 
   const sportName = SPORT_INFO[filter.sport].name;
@@ -17,7 +17,7 @@ export default function OddsPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Odds Comparison</h1>
           <p className="text-gray-400 text-sm mt-1">
-            Compare odds across all NY legal sportsbooks
+            US books + Pinnacle fair line
           </p>
         </div>
 
@@ -41,9 +41,7 @@ export default function OddsPage() {
           <select
             className="bg-gray-700 text-white text-sm rounded-lg px-3 py-2 border border-gray-600"
             value={filter.marketType}
-            onChange={() => {
-              // TODO: implement market type filter
-            }}
+            onChange={(e) => setMarketType(e.target.value as MarketType | 'all')}
           >
             <option value="all">All Markets</option>
             <option value="h2h">Moneyline</option>

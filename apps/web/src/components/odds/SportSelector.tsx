@@ -6,6 +6,8 @@ const sports: SportKey[] = [
   'basketball_nba',
   'baseball_mlb',
   'icehockey_nhl',
+  'soccer_epl',
+  'soccer_usa_mls',
 ];
 
 export default function SportSelector() {

@@ -127,6 +127,12 @@ function EventCard({ event, displayedBooks }: EventCardProps) {
     minute: '2-digit',
   });
 
+  const { filter } = useOddsStore();
+  const markets =
+    filter.marketType === 'all'
+      ? event.markets
+      : event.markets.filter((m) => m.type === filter.marketType);
+
   return (
     <div className="rounded-xl border border-gray-700/60 bg-gray-800/70 shadow-lg overflow-hidden backdrop-blur-sm">
       {/* Event Header */}
@@ -176,14 +182,14 @@ function EventCard({ event, displayedBooks }: EventCardProps) {
             </tr>
           </thead>
           <tbody>
-            {event.markets.map((market, marketIdx) => (
+            {markets.map((market, marketIdx) => (
               <MarketRows
                 key={market.type}
                 event={event}
                 marketType={market.type}
                 outcomes={market.outcomes}
                 displayedBooks={displayedBooks}
-                isLast={marketIdx === event.markets.length - 1}
+                isLast={marketIdx === markets.length - 1}
               />
             ))}
           </tbody>
