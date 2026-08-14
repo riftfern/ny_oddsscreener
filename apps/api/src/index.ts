@@ -6,6 +6,7 @@ import { dirname, join } from 'path';
 import oddsRouter from './routes/odds.js';
 import evRouter from './routes/ev.js';
 import arbitrageRouter from './routes/arbitrage.js';
+import billingRouter from './routes/billing.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,6 +21,11 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
+
+// Stripe webhook MUST be mounted before express.json() so the raw body is available
+// for signature verification.
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), billingRouter);
+
 app.use(express.json());
 
 // Health check
@@ -35,6 +41,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/odds', oddsRouter);
 app.use('/api/ev', evRouter);
 app.use('/api/arbitrage', arbitrageRouter);
+app.use('/api/billing', billingRouter);
 
 // 404 handler
 app.use((_req, res) => {
@@ -54,6 +61,9 @@ app.listen(PORT, () => {
     GET /api/odds       - Get odds (query: sport, live)
     GET /api/ev         - Get +EV opportunities (query: sport, minEV, live)
     GET /api/arbitrage  - Get arbitrage opportunities (query: sport, minProfit, live)
+    POST /api/billing/checkout  - Stripe Checkout
+    POST /api/billing/webhook   - Stripe webhook
+    POST /api/billing/portal    - Stripe Customer Portal
 
   Note: Using mock data by default. Add ?live=true for real API data.
   `);

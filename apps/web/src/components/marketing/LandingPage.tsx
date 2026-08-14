@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { getMockEvents, SPORTS } from '@ny-sharp-edge/shared';
 import OddsGrid from '@/components/odds/OddsGrid';
+import { useCheckout } from '@/hooks/useCheckout';
 import { Check } from 'lucide-react';
 
 const BULLETS = [
@@ -15,6 +16,16 @@ export default function LandingPage() {
     () => getMockEvents(SPORTS.NBA).slice(0, 2),
     []
   );
+  const checkout = useCheckout();
+
+  const handleCheckout = async (plan: 'edge' | 'pro') => {
+    const result = await checkout(plan);
+    if (result.url) {
+      window.location.href = result.url;
+    } else {
+      window.location.href = '/app';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
@@ -67,18 +78,20 @@ export default function LandingPage() {
               </ul>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/app"
+                <button
+                  type="button"
+                  onClick={() => handleCheckout('edge')}
                   className="inline-flex justify-center items-center bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
                 >
                   Start with Edge — $19/mo
-                </Link>
-                <Link
-                  to="/app"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCheckout('pro')}
                   className="inline-flex justify-center items-center bg-gray-700 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
                 >
                   Go Pro — $49/mo
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -122,12 +135,13 @@ export default function LandingPage() {
                   <Check className="w-4 h-4 text-blue-400" /> Quarter-Kelly sizing
                 </li>
               </ul>
-              <Link
-                to="/app"
+              <button
+                type="button"
+                onClick={() => handleCheckout('edge')}
                 className="mt-6 block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-lg transition-colors"
               >
                 Get Edge
-              </Link>
+              </button>
             </div>
 
             {/* Pro */}
@@ -150,12 +164,13 @@ export default function LandingPage() {
                   <Check className="w-4 h-4 text-blue-400" /> Kalshi + Polymarket screen
                 </li>
               </ul>
-              <Link
-                to="/app"
+              <button
+                type="button"
+                onClick={() => handleCheckout('pro')}
                 className="mt-6 block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-lg transition-colors"
               >
                 Get Pro
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -24,7 +24,9 @@ export default function PlanGate({ requiredPlan, children }: PlanGateProps) {
   }
 
   if (PLAN_RANK[plan] < PLAN_RANK[requiredPlan]) {
-    return <UpgradeCard requiredPlan={requiredPlan} />;
+    // PlanGate is only used with 'edge' or 'pro' gates; 'free' would always pass.
+    const upgradePlan = requiredPlan === 'edge' || requiredPlan === 'pro' ? requiredPlan : 'edge';
+    return <UpgradeCard requiredPlan={upgradePlan} />;
   }
 
   return <>{children}</>;

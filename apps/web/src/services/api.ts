@@ -59,4 +59,17 @@ export const api = {
   health: async (): Promise<{ status: string }> => {
     return fetchJson('/health');
   },
+
+  createCheckoutSession: async (plan: 'edge' | 'pro'): Promise<{ url?: string; error?: string }> => {
+    const response = await fetch(`${API_BASE}/billing/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({ error: 'unknown' }));
+      return { error: body.error ?? 'checkout_failed' };
+    }
+    return response.json();
+  },
 };
