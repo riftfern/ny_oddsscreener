@@ -266,6 +266,14 @@ export async function fetchExchangeOdds(sport: SportKey): Promise<Event[]> {
   return fetchOdds(sport, { regions: exchangeRegions() });
 }
 
+export async function fetchExchangeOddsResponse(sport: SportKey): Promise<OddsResponse> {
+  const events = await fetchExchangeOdds(sport);
+  return {
+    events,
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
 export async function fetchOddsResponse(sport: SportKey): Promise<OddsResponse> {
   const events = await fetchOdds(sport);
   return {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchOdds, fetchExchangeOdds, clearOddsCache } from './oddsApi';
+import { fetchOdds, fetchExchangeOdds, fetchExchangeOddsResponse, clearOddsCache } from './oddsApi';
 
 // A single The Odds API event carrying FanDuel (soft) + Pinnacle (sharp) prices.
 function makeOddsApiPayload() {
@@ -124,6 +124,24 @@ describe('oddsApi fetchExchangeOdds', () => {
   it('requests the exchange region (us_ex) in a separate cache key', async () => {
     const url = await getFirstFetchedUrl(fetchExchangeOdds('basketball_nba'));
     expect(url).toContain('regions=us_ex');
+  });
+
+  it('does not collide with the default Edge cache key', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(makeOddsApiPayload()));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchOdds('basketball_nba');
+    await fetchExchangeOdds('basketball_nba');
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns a response wrapper with lastUpdated', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(makeOddsApiPayload())));
+
+    const response = await fetchExchangeOddsResponse('basketball_nba');
+    expect(response.events).toHaveLength(1);
+    expect(response.lastUpdated).toBeDefined();
   });
 });
 
