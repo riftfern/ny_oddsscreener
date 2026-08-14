@@ -1,4 +1,4 @@
-import type { Event, SportsbookId, MarketType, BookOdds } from '@ny-sharp-edge/shared';
+import type { Event, MarketType, BookOdds } from '@ny-sharp-edge/shared';
 import { getVenue, formatAmerican } from '@ny-sharp-edge/shared';
 import { useOddsStore } from '@/stores/oddsStore';
 import { useBetslipStore } from '@/stores/betslipStore';
@@ -7,12 +7,13 @@ interface OddsGridProps {
   events: Event[];
 }
 
-const DISPLAYED_BOOKS: SportsbookId[] = [
+const DISPLAYED_BOOKS: string[] = [
   'draftkings',
   'fanduel',
   'betmgm',
   'caesars',
   'betrivers',
+  'pinnacle',
 ];
 
 const SKELETON_CARDS = 4;
@@ -115,7 +116,7 @@ export default function OddsGrid({ events }: OddsGridProps) {
 
 interface EventCardProps {
   event: Event;
-  displayedBooks: SportsbookId[];
+  displayedBooks: string[];
 }
 
 function EventCard({ event, displayedBooks }: EventCardProps) {
@@ -203,7 +204,7 @@ interface MarketRowsProps {
   event: Event;
   marketType: MarketType;
   outcomes: Event['markets'][0]['outcomes'];
-  displayedBooks: SportsbookId[];
+  displayedBooks: string[];
   isLast: boolean;
 }
 

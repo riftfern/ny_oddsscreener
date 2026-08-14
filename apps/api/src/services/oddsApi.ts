@@ -118,8 +118,7 @@ function transformToEvent(apiEvent: OddsApiEvent): Event {
   };
 
   for (const bookmaker of apiEvent.bookmakers) {
-    const bookId = BOOK_KEY_MAP[bookmaker.key];
-    if (!bookId) continue; // Skip non-NY books
+    const bookId = BOOK_KEY_MAP[bookmaker.key] ?? bookmaker.key;
 
     for (const market of bookmaker.markets) {
       const marketType = market.key as 'h2h' | 'spreads' | 'totals';

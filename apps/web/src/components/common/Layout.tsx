@@ -58,7 +58,7 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between text-sm text-gray-400">
             <span>Portfolio Project by Jack (@riftfern)</span>
-            <span>Data refreshes every 30 seconds</span>
+            <span>Data refreshes every 45 seconds</span>
           </div>
         </div>
       </footer>

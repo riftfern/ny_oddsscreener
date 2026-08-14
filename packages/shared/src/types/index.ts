@@ -199,7 +199,7 @@ export interface OddsFilter {
   sport: SportKey;
   date: 'today' | 'tomorrow' | 'week';
   marketType: MarketType | 'all';
-  books: SportsbookId[];
+  books: string[];
 }
 
 // Betslip Types

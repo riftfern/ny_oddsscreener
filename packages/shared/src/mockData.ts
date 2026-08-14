@@ -309,7 +309,8 @@ export function getMockEvents(sport: SportKey): Event[] {
       outcomes: market.outcomes.map((outcome) => {
         const newBookOdds = outcome.bookOdds.map((bo) => ({
           ...bo,
-          odds: varyOdds(bo.odds, 3),
+          // Pin Pinnacle at the stored sharp price; soft books may jitter.
+          odds: bo.bookId === 'pinnacle' ? bo.odds : varyOdds(bo.odds, 3),
           updatedAt: new Date().toISOString(),
         }));
         return {

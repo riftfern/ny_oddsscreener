@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SportKey, MarketType, SportsbookId, OddsFilter } from '@ny-sharp-edge/shared';
+import type { SportKey, MarketType, OddsFilter } from '@ny-sharp-edge/shared';
 import { SPORTS, SPORTSBOOKS } from '@ny-sharp-edge/shared';
 
 interface OddsStore {
@@ -7,7 +7,7 @@ interface OddsStore {
   setSport: (sport: SportKey) => void;
   setDate: (date: OddsFilter['date']) => void;
   setMarketType: (marketType: MarketType | 'all') => void;
-  toggleBook: (bookId: SportsbookId) => void;
+  toggleBook: (bookId: string) => void;
   resetFilters: () => void;
 }
 
