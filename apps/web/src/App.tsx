@@ -3,6 +3,7 @@ import Layout from '@/components/common/Layout';
 import OddsPage from '@/components/odds/OddsPage';
 import EVPage from '@/components/ev/EVPage';
 import ArbitragePage from '@/components/arb/ArbitragePage';
+import ExchangesPage from '@/components/exchanges/ExchangesPage';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route index element={<OddsPage />} />
           <Route path="ev" element={<EVPage />} />
           <Route path="arb" element={<ArbitragePage />} />
+          <Route path="exchanges" element={<ExchangesPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

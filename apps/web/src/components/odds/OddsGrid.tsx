@@ -5,9 +5,10 @@ import { useBetslipStore } from '@/stores/betslipStore';
 
 interface OddsGridProps {
   events: Event[];
+  displayedBooks?: string[];
 }
 
-const DISPLAYED_BOOKS: string[] = [
+const DEFAULT_DISPLAYED_BOOKS: string[] = [
   'draftkings',
   'fanduel',
   'betmgm',
@@ -47,7 +48,7 @@ function SkeletonCard() {
               <th className="px-5 py-2.5 w-24 text-left">
                 <Shimmer className="h-3 w-12" />
               </th>
-              {DISPLAYED_BOOKS.map((bookId) => (
+              {DEFAULT_DISPLAYED_BOOKS.map((bookId) => (
                 <th key={bookId} className="px-1.5 py-2.5 w-20">
                   <Shimmer className="h-5 w-10 mx-auto rounded-md" />
                 </th>
@@ -73,7 +74,7 @@ function SkeletonCard() {
                       <Shimmer className="h-3.5 w-16" />
                     </td>
                   )}
-                  {DISPLAYED_BOOKS.map((bookId) => (
+                  {DEFAULT_DISPLAYED_BOOKS.map((bookId) => (
                     <td key={bookId} className="px-1.5 py-1.5 text-center">
                       <Shimmer className="h-8 w-full rounded-lg" />
                     </td>
@@ -101,9 +102,11 @@ export function OddsGridSkeleton() {
   );
 }
 
-export default function OddsGrid({ events }: OddsGridProps) {
+export default function OddsGrid({ events, displayedBooks: displayedBooksProp }: OddsGridProps) {
   const { filter } = useOddsStore();
-  const displayedBooks = DISPLAYED_BOOKS.filter((b) => filter.books.includes(b));
+  const displayedBooks = (displayedBooksProp ?? DEFAULT_DISPLAYED_BOOKS).filter((b) =>
+    filter.books.includes(b)
+  );
 
   return (
     <div className="space-y-5">
