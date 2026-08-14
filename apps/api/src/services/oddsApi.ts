@@ -1,5 +1,5 @@
 import type { Event, SportKey, BookOdds, MarketOutcome, Market, EVOpportunity, ArbitrageOpportunity, RegionKey } from '@ny-sharp-edge/shared';
-import { SPORTS, getMockEvents, getMockEVOpportunities, getMockArbitrageOpportunities } from '@ny-sharp-edge/shared';
+import { SPORTS, getMockEvents } from '@ny-sharp-edge/shared';
 import { findEVOpportunities } from './evFinder.js';
 import { findArbitrageOpportunities } from './arbFinder.js';
 import { OddsCache, defaultTtlMs } from './oddsCache.js';
@@ -279,13 +279,16 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number 
   const { sport = 'all', minEV = 1 } = options;
 
   if (useMockData()) {
-    console.log('[mock] Returning mock EV opportunities');
-    const opportunities = getMockEVOpportunities();
-    const filtered = opportunities.filter(o => o.evPercentage >= minEV);
+    console.log('[mock] Running +EV finder on mock events (Pinnacle fair line)');
+    const sportsToScan: SportKey[] = sport === 'all'
+      ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB, SPORTS.EPL, SPORTS.MLS]
+      : [sport as SportKey];
+    const mockEvents: Event[] = sportsToScan.flatMap((s) => getMockEvents(s));
+    const opportunities = findEVOpportunities(mockEvents, { minEV });
     return {
-      opportunities: filtered,
-      count: filtered.length,
-      scannedEvents: 0,
+      opportunities,
+      count: opportunities.length,
+      scannedEvents: mockEvents.length,
       minEV,
       lastUpdated: new Date().toISOString(),
     };
@@ -319,13 +322,16 @@ export async function fetchArbitrageResponse(options: { sport?: string; minProfi
   const { sport = 'all', minProfit = 0.1, totalStake = 100 } = options;
 
   if (useMockData()) {
-    console.log('[mock] Returning mock arbitrage opportunities');
-    const opportunities = getMockArbitrageOpportunities();
-    const filtered = opportunities.filter(o => o.profitPercentage >= minProfit);
+    console.log('[mock] Running arbitrage finder on mock events');
+    const sportsToScan: SportKey[] = sport === 'all'
+      ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB, SPORTS.EPL, SPORTS.MLS]
+      : [sport as SportKey];
+    const mockEvents: Event[] = sportsToScan.flatMap((s) => getMockEvents(s));
+    const opportunities = findArbitrageOpportunities(mockEvents, { minProfit, totalStake });
     return {
-      opportunities: filtered,
-      count: filtered.length,
-      scannedEvents: 0,
+      opportunities,
+      count: opportunities.length,
+      scannedEvents: mockEvents.length,
       minProfit,
       totalStake,
       lastUpdated: new Date().toISOString(),

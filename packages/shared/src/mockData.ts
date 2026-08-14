@@ -1,6 +1,5 @@
 import type { Event, SportKey, BookOdds, MarketOutcome, SportsbookId } from './types/index.js';
 import { SPORTS, SPORTSBOOKS } from './types/index.js';
-import type { EVOpportunity, ArbitrageOpportunity } from './types/index.js';
 
 const NY_BOOKS: SportsbookId[] = Object.values(SPORTSBOOKS);
 
@@ -16,15 +15,28 @@ function findBestOdds(bookOdds: BookOdds[]): BookOdds | undefined {
   return bookOdds.reduce((best, current) => (current.odds > best.odds ? current : best));
 }
 
-// Generate book odds with realistic variations
+// Generate book odds with realistic variations, PLUS a Pinnacle (sharp) line.
+// Pinnacle is held at the base (tightest) price so it can serve as the fair
+// line in demo mode. Soft books scatter around it (carrying a little hold).
+// FanDuel is given a deterministic +EV outlier on plus-priced (underdog) sides
+// so the +EV finder has a real opportunity to surface in demo mode.
 function generateBookOdds(baseOdds: number, line?: number): BookOdds[] {
   const now = new Date().toISOString();
-  return NY_BOOKS.map((bookId) => ({
-    bookId,
-    odds: varyOdds(baseOdds),
-    line,
-    updatedAt: now,
-  }));
+  const softBooks: BookOdds[] = NY_BOOKS.map((bookId) => {
+    // On plus-priced (underdog) outcomes, FanDuel prices long enough to clear
+    // the Pinnacle no-vig fair line. On favorites it just carries normal hold.
+    const boost = bookId === 'fanduel' && baseOdds > 0 ? 15 : 0;
+    return {
+      bookId,
+      odds: varyOdds(baseOdds) + boost,
+      line,
+      updatedAt: now,
+    };
+  });
+  return [
+    ...softBooks,
+    { bookId: 'pinnacle', odds: baseOdds, line, updatedAt: now },
+  ];
 }
 
 // Generate outcomes with best odds calculated
@@ -308,227 +320,4 @@ export function getMockEvents(sport: SportKey): Event[] {
       }),
     })),
   }));
-}
-
-export function getMockEVOpportunities(): EVOpportunity[] {
-  // We can construct these partially from the events, or just hardcode a diverse list
-  // The goal is to show the UI's capabilities.
-  const nfl1 = NFL_EVENTS[0];
-  const nfl2 = NFL_EVENTS[1];
-  const nba1 = NBA_EVENTS[0];
-  const nba2 = NBA_EVENTS[1];
-  const nhl1 = NHL_EVENTS[0];
-
-  return [
-    {
-      eventId: nfl1.id,
-      event: nfl1,
-      marketType: 'h2h',
-      outcomeName: 'Buffalo Bills',
-      bookId: 'fanduel',
-      bookOdds: 105,
-      fairOdds: -110,
-      fairProbability: 0.5238,
-      evPercentage: 10.2,
-      edge: 0.102,
-      kellySuggestion: 51.0,
-    },
-    {
-      eventId: nfl1.id,
-      event: nfl1,
-      marketType: 'spreads',
-      outcomeName: 'Buffalo Bills -3.5',
-      bookId: 'draftkings',
-      bookOdds: 100,
-      fairOdds: -115,
-      fairProbability: 0.5349,
-      evPercentage: 6.9,
-      edge: 0.069,
-      kellySuggestion: 34.5,
-    },
-    {
-      eventId: nfl2.id,
-      event: nfl2,
-      marketType: 'h2h',
-      outcomeName: 'New York Giants',
-      bookId: 'betmgm',
-      bookOdds: 240,
-      fairOdds: 210,
-      fairProbability: 0.3226,
-      evPercentage: 9.7,
-      edge: 0.097,
-      kellySuggestion: 28.5,
-    },
-    {
-      eventId: nba1.id,
-      event: nba1,
-      marketType: 'totals',
-      outcomeName: 'Over 224.5',
-      bookId: 'caesars',
-      bookOdds: -105,
-      fairOdds: -120,
-      fairProbability: 0.5455,
-      evPercentage: 6.4,
-      edge: 0.064,
-      kellySuggestion: 31.8,
-    },
-    {
-      eventId: nba2.id,
-      event: nba2,
-      marketType: 'spreads',
-      outcomeName: 'Brooklyn Nets +8.5',
-      bookId: 'betrivers',
-      bookOdds: -108,
-      fairOdds: -125,
-      fairProbability: 0.5556,
-      evPercentage: 7.1,
-      edge: 0.071,
-      kellySuggestion: 38.0,
-    },
-     {
-      eventId: nhl1.id,
-      event: nhl1,
-      marketType: 'h2h',
-      outcomeName: 'Pittsburgh Penguins',
-      bookId: 'fanatics',
-      bookOdds: 135,
-      fairOdds: 120,
-      fairProbability: 0.4545,
-      evPercentage: 6.8,
-      edge: 0.068,
-      kellySuggestion: 25.4,
-    },
-    {
-      eventId: 'nba-3',
-      event: NBA_EVENTS[2],
-      marketType: 'totals',
-      outcomeName: 'Under 231.5',
-      bookId: 'bet365',
-      bookOdds: 100,
-      fairOdds: -112,
-      fairProbability: 0.5283,
-      evPercentage: 5.6,
-      edge: 0.056,
-      kellySuggestion: 28.0,
-    },
-     {
-      eventId: 'nfl-4',
-      event: NFL_EVENTS[3],
-      marketType: 'h2h',
-      outcomeName: 'Cincinnati Bengals',
-      bookId: 'thescore',
-      bookOdds: 135,
-      fairOdds: 120,
-      fairProbability: 0.4545,
-      evPercentage: 6.8,
-      edge: 0.068,
-      kellySuggestion: 25.0,
-    },
-  ];
-}
-
-export function getMockArbitrageOpportunities(): ArbitrageOpportunity[] {
-  const nhlEvent = NHL_EVENTS[0];
-  const mlbEvent = MLB_EVENTS[0];
-  const nbaEvent = NBA_EVENTS[0];
-  const nflEvent = NFL_EVENTS[0];
-
-  return [
-    {
-      eventId: nhlEvent.id,
-      event: nhlEvent,
-      marketType: 'h2h',
-      profitPercentage: 2.15,
-      totalStake: 100,
-      guaranteedProfit: 2.15,
-      legs: [
-        {
-          outcomeName: 'New York Rangers',
-          bookId: 'fanduel',
-          odds: -110,
-          stakeRatio: 0.51,
-          suggestedStake: 51.0,
-        },
-        {
-          outcomeName: 'Pittsburgh Penguins',
-          bookId: 'draftkings',
-          odds: 125,
-          stakeRatio: 0.49,
-          suggestedStake: 49.0,
-        },
-      ],
-    },
-    {
-      eventId: mlbEvent.id,
-      event: mlbEvent,
-      marketType: 'totals',
-      profitPercentage: 1.2,
-      totalStake: 100,
-      guaranteedProfit: 1.2,
-      legs: [
-        {
-          outcomeName: 'Over 8.5',
-          bookId: 'caesars',
-          odds: -105,
-          stakeRatio: 0.506,
-          suggestedStake: 50.6,
-        },
-        {
-          outcomeName: 'Under 8.5',
-          bookId: 'betrivers',
-          odds: 110,
-          stakeRatio: 0.494,
-          suggestedStake: 49.4,
-        },
-      ],
-    },
-    {
-      eventId: nbaEvent.id,
-      event: nbaEvent,
-      marketType: 'spreads',
-      profitPercentage: 3.4,
-      totalStake: 100,
-      guaranteedProfit: 3.40,
-      legs: [
-        {
-          outcomeName: 'Lakers +2.5',
-          bookId: 'betmgm',
-          odds: 105,
-          stakeRatio: 0.50,
-          suggestedStake: 50.0,
-        },
-        {
-          outcomeName: 'Knicks -2.5',
-          bookId: 'bet365',
-          odds: 105,
-          stakeRatio: 0.50,
-          suggestedStake: 50.0,
-        },
-      ],
-    },
-     {
-      eventId: nflEvent.id,
-      event: nflEvent,
-      marketType: 'h2h',
-      profitPercentage: 0.8,
-      totalStake: 100,
-      guaranteedProfit: 0.80,
-      legs: [
-        {
-          outcomeName: 'Bills',
-          bookId: 'fanatics',
-          odds: -145,
-          stakeRatio: 0.60,
-          suggestedStake: 60.0,
-        },
-        {
-          outcomeName: 'Jets',
-          bookId: 'ballybet',
-          odds: 155,
-          stakeRatio: 0.40,
-          suggestedStake: 40.0,
-        },
-      ],
-    },
-  ];
 }
