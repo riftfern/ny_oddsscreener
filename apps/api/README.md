@@ -29,6 +29,19 @@ does not multiply live calls.
 `us_ex` is intentionally NOT included in `ODDS_REGIONS`. Do not add it there;
 that would charge every Edge user for Kalshi/Polymarket data.
 
+## Cross-venue +EV
+
+`findCrossVenueEVOpportunities` joins default-region events with `us_ex` events
+using the exact `event.id` returned by The Odds API. It computes:
+
+- `source: 'pinnacle'` — Pinnacle no-vig is the fair line; an exchange price
+  (Kalshi/Polymarket) beats it.
+- `source: 'exchange'` — exchange no-vig mid is the fair line; a soft book beats it.
+
+This is gated on event ids matching across regions. If a live probe shows ids do
+not match, Exchanges ships as a parallel screen only and cross-venue EV stays
+parked until a native Kalshi/Polymarket adapter is built (Phase 5).
+
 ## Endpoints
 
 - `GET /api/health` — health check

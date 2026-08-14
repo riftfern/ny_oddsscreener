@@ -90,6 +90,7 @@ function checkSide(
       evPercentage: ev.evPercentage,
       edge: ev.edge,
       kellySuggestion: kellyStakeAmerican(fairProbability, bookOdd.odds, bankroll, kellyFraction),
+      source: 'pinnacle',
     });
   }
 

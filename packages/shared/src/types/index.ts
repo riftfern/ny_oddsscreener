@@ -173,6 +173,7 @@ export interface EVOpportunity {
   evPercentage: number;
   edge: number;
   kellySuggestion?: number;
+  source?: 'pinnacle' | 'exchange'; // which side supplied the fair line
 }
 
 // Arbitrage Types
