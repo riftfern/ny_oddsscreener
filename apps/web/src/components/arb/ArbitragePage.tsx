@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useArbitrageOpportunities } from '@/hooks/useOdds';
 import ArbitrageOpportunityCard from './ArbitrageOpportunityCard';
+import PlanGate from '@/components/auth/PlanGate';
 
 const MIN_PROFIT_OPTIONS = [0.1, 0.5, 1, 2, 3];
 const STAKE_OPTIONS = [100, 500, 1000, 5000];
@@ -11,6 +12,8 @@ export default function ArbitragePage() {
   const { data, isLoading, error, dataUpdatedAt } = useArbitrageOpportunities(minProfit, totalStake);
 
   return (
+    <PlanGate requiredPlan="pro">
+
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
@@ -127,5 +130,6 @@ export default function ArbitragePage() {
         </ul>
       </div>
     </div>
+    </PlanGate>
   );
 }

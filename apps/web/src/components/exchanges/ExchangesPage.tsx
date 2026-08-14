@@ -2,6 +2,7 @@ import { useExchangeOdds } from '@/hooks/useExchangeOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from '@/components/odds/SportSelector';
 import OddsGrid, { OddsGridSkeleton } from '@/components/odds/OddsGrid';
+import PlanGate from '@/components/auth/PlanGate';
 import { VENUES, SPORT_INFO, type Event, type VenueKind } from '@ny-sharp-edge/shared';
 
 const EXCHANGE_KINDS: VenueKind[] = ['prediction', 'exchange'];
@@ -44,6 +45,8 @@ export default function ExchangesPage() {
   const exchangeEvents = data ? filterExchangeEvents(data.events) : [];
 
   return (
+    <PlanGate requiredPlan="pro">
+
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
@@ -97,5 +100,6 @@ export default function ExchangesPage() {
         <OddsGrid events={exchangeEvents} displayedBooks={EXCHANGE_BOOK_IDS} />
       )}
     </div>
+    </PlanGate>
   );
 }

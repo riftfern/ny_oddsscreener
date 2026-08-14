@@ -1,5 +1,6 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { Betslip, BetslipToggle } from '../betslip';
+import { usePlan } from '@/components/auth/AuthProvider';
 
 const navItems = [
   { path: '/app', label: 'Odds' },
@@ -8,7 +9,15 @@ const navItems = [
   { path: '/app/exchanges', label: 'Exchanges' },
 ];
 
+const PLAN_BADGE_COLORS: Record<ReturnType<typeof usePlan>['plan'], string> = {
+  free: 'bg-gray-600',
+  edge: 'bg-blue-600',
+  pro: 'bg-purple-600',
+};
+
 export default function Layout() {
+  const { plan, isLoaded } = usePlan();
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
@@ -20,7 +29,11 @@ export default function Layout() {
               <Link to="/" className="text-xl font-bold text-white hover:text-gray-200 transition-colors">
                 NY Sharp Edge
               </Link>
-              <span className="text-xs bg-blue-600 px-2 py-0.5 rounded text-white">BETA</span>
+              {isLoaded && (
+                <span className={`text-xs ${PLAN_BADGE_COLORS[plan]} px-2 py-0.5 rounded text-white uppercase tracking-wider`}>
+                  {plan}
+                </span>
+              )}
             </div>
 
             {/* Navigation */}

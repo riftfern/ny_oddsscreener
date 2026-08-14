@@ -2,6 +2,7 @@ import { useOdds } from '@/hooks/useOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
 import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
+import PlanGate from '@/components/auth/PlanGate';
 import { SPORT_INFO, type MarketType } from '@ny-sharp-edge/shared';
 
 export default function OddsPage() {
@@ -11,6 +12,8 @@ export default function OddsPage() {
   const sportName = SPORT_INFO[filter.sport].name;
 
   return (
+    <PlanGate requiredPlan="edge">
+
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
@@ -85,5 +88,6 @@ export default function OddsPage() {
 
       {data && data.events.length > 0 && <OddsGrid events={data.events} />}
     </div>
+    </PlanGate>
   );
 }

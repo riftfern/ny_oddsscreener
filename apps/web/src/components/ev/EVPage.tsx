@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useEVOpportunities } from '@/hooks/useOdds';
 import EVOpportunityCard from './EVOpportunityCard';
+import PlanGate from '@/components/auth/PlanGate';
 
 const MIN_EV_OPTIONS = [0.5, 1, 2, 3, 5];
 
@@ -9,6 +10,8 @@ export default function EVPage() {
   const { data, isLoading, error, dataUpdatedAt } = useEVOpportunities(minEV);
 
   return (
+    <PlanGate requiredPlan="edge">
+
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
@@ -106,5 +109,6 @@ export default function EVPage() {
         </ul>
       </div>
     </div>
+    </PlanGate>
   );
 }
