@@ -1,7 +1,8 @@
-import type { Event, SportKey, BookOdds, MarketOutcome, Market, SportsbookId, EVOpportunity, ArbitrageOpportunity } from '@ny-sharp-edge/shared';
-import { SPORTSBOOKS, SPORTS, getMockEvents, getMockEVOpportunities, getMockArbitrageOpportunities } from '@ny-sharp-edge/shared';
+import type { Event, SportKey, BookOdds, MarketOutcome, Market, EVOpportunity, ArbitrageOpportunity, RegionKey } from '@ny-sharp-edge/shared';
+import { SPORTS, getMockEvents, getMockEVOpportunities, getMockArbitrageOpportunities } from '@ny-sharp-edge/shared';
 import { findEVOpportunities } from './evFinder.js';
 import { findArbitrageOpportunities } from './arbFinder.js';
+import { OddsCache, defaultTtlMs } from './oddsCache.js';
 
 const BASE_URL = 'https://api.the-odds-api.com/v4';
 
@@ -36,8 +37,25 @@ function getApiKey(): string | undefined {
   return process.env.THE_ODDS_API_KEY;
 }
 
-// Map The Odds API book keys to our SportsbookId
-const BOOK_KEY_MAP: Record<string, SportsbookId | null> = {
+function defaultRegions(): RegionKey[] {
+  const raw = process.env.ODDS_REGIONS;
+  if (raw) {
+    return raw.split(',').map((r) => r.trim()).filter(Boolean) as RegionKey[];
+  }
+  return ['us', 'us2', 'eu'];
+}
+
+function exchangeRegions(): RegionKey[] {
+  const raw = process.env.ODDS_EXCHANGE_REGIONS;
+  if (raw) {
+    return raw.split(',').map((r) => r.trim()).filter(Boolean) as RegionKey[];
+  }
+  return ['us_ex'];
+}
+
+// Map The Odds API book keys to our venue ids (identity for known VENUES keys,
+// plus aliases for books The Odds API names differently).
+const BOOK_KEY_MAP: Record<string, string> = {
   fanduel: 'fanduel',
   draftkings: 'draftkings',
   betmgm: 'betmgm',
@@ -47,31 +65,13 @@ const BOOK_KEY_MAP: Record<string, SportsbookId | null> = {
   ballybet: 'ballybet',
   bet365: 'bet365',
   thescore: 'thescore',
-  // Ignore non-NY books
-  bovada: null,
-  betonlineag: null,
-  pinnacle: null,
-  mybookieag: null,
-  lowvig: null,
-  superbook: null,
-  betparx: null,
-  espnbet: null,
-  fliff: null,
-  hardrockbet: null,
-  pointsbetus: null,
-  unibet_us: null,
-  wynnbet: null,
+  bovada: 'bovada',
+  lowvig: 'lowvig',
+  espnbet: 'espnbet',
+  pinnacle: 'pinnacle',
+  kalshi: 'kalshi',
+  polymarket: 'polymarket',
 };
-
-// NY legal sportsbook keys for API request
-const NY_BOOKMAKERS = [
-  'fanduel',
-  'draftkings',
-  'betmgm',
-  'williamhill_us',
-  'betrivers',
-  'bet365',
-];
 
 interface OddsApiOutcome {
   name: string;
@@ -190,7 +190,22 @@ function transformToEvent(apiEvent: OddsApiEvent): Event {
   };
 }
 
-export async function fetchOdds(sport: SportKey): Promise<Event[]> {
+export interface FetchOddsOptions {
+  regions?: RegionKey[];
+  bookmakers?: string[];
+  markets?: string;
+  useCache?: boolean;
+}
+
+// One cache per sport+params shape. TTL from env (default 45s).
+const oddsCache = new OddsCache<Event[]>(defaultTtlMs());
+
+/** Test helper: clear the in-process odds cache between cases. */
+export function clearOddsCache(): void {
+  oddsCache.clear();
+}
+
+export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {}): Promise<Event[]> {
   if (useMockData()) {
     console.log(`[mock] Returning mock events for ${sport}`);
     return getMockEvents(sport);
@@ -201,14 +216,29 @@ export async function fetchOdds(sport: SportKey): Promise<Event[]> {
     throw new Error('THE_ODDS_API_KEY is not configured');
   }
 
+  const regions = options.regions ?? defaultRegions();
+  const markets = options.markets ?? 'h2h,spreads,totals';
+  const cacheKey = `${sport}|${regions.join(',')}|${markets}`;
+
+  const useCache = options.useCache ?? true;
+  if (useCache) {
+    const cached = oddsCache.get(cacheKey);
+    if (cached) {
+      console.log(`[cache] hit ${cacheKey}`);
+      return cached;
+    }
+  }
+
   const url = new URL(`${BASE_URL}/sports/${sport}/odds`);
   url.searchParams.set('apiKey', apiKey);
-  url.searchParams.set('regions', 'us');
-  url.searchParams.set('markets', 'h2h,spreads,totals');
+  url.searchParams.set('regions', regions.join(','));
+  url.searchParams.set('markets', markets);
   url.searchParams.set('oddsFormat', 'american');
-  url.searchParams.set('bookmakers', NY_BOOKMAKERS.join(','));
+  if (options.bookmakers?.length) {
+    url.searchParams.set('bookmakers', options.bookmakers.join(','));
+  }
 
-  console.log(`Fetching odds for ${sport}...`);
+  console.log(`Fetching odds for ${sport} (regions: ${regions.join(',')})...`);
 
   const response = await fetch(url.toString());
 
@@ -224,8 +254,17 @@ export async function fetchOdds(sport: SportKey): Promise<Event[]> {
   console.log(`API Requests - Used: ${used}, Remaining: ${remaining}`);
 
   const data: OddsApiEvent[] = await response.json();
+  const events = data.map(transformToEvent);
 
-  return data.map(transformToEvent);
+  if (useCache) {
+    oddsCache.set(cacheKey, events);
+  }
+
+  return events;
+}
+
+export async function fetchExchangeOdds(sport: SportKey): Promise<Event[]> {
+  return fetchOdds(sport, { regions: exchangeRegions() });
 }
 
 export async function fetchOddsResponse(sport: SportKey): Promise<OddsResponse> {
