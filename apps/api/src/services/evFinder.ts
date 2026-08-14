@@ -1,9 +1,10 @@
-import type { Event, EVOpportunity, SportsbookId, MarketType } from '@ny-sharp-edge/shared';
+import type { Event, EVOpportunity, MarketType } from '@ny-sharp-edge/shared';
 import {
   calculateNoVigOdds,
   calculateEV,
   kellyStakeAmerican,
-  americanToImplied,
+  pickSharpOdds,
+  SHARP_BOOK_PRIORITY,
 } from '@ny-sharp-edge/shared';
 
 interface EVFinderOptions {
@@ -12,11 +13,16 @@ interface EVFinderOptions {
   kellyFraction?: number; // Kelly fraction (default 0.25)
 }
 
+type MarketOutcome = Event['markets'][0]['outcomes'][0];
+
 /**
- * Find +EV opportunities from a list of events
+ * Find +EV opportunities from a list of events.
  *
- * Strategy: Use the market consensus (average of all books) to calculate
- * fair odds, then find books offering better than fair value.
+ * Strategy: the fair line comes from a SHARP source (Pinnacle no-vig), never
+ * from best retail odds. For each 2-way market we pick the sharp book on each
+ * side; if either side lacks a sharp book we skip the market entirely rather
+ * than silently treating a soft book (e.g. FanDuel) as the fair line. Then we
+ * compare every NON-sharp book's price to that fair probability.
  */
 export function findEVOpportunities(
   events: Event[],
@@ -32,63 +38,18 @@ export function findEVOpportunities(
 
       const [outcome1, outcome2] = market.outcomes;
 
-      // Need odds from at least one book on each side
-      if (outcome1.bookOdds.length < 1 || outcome2.bookOdds.length < 1) continue;
+      // Fair line = sharp book no-vig on each side.
+      const sharp1 = pickSharpOdds(outcome1.bookOdds);
+      const sharp2 = pickSharpOdds(outcome2.bookOdds);
+      if (!sharp1 || !sharp2) continue; // skip: no sharp fair line available
 
-      // Calculate fair odds using market consensus
-      const fairOdds = calculateMarketConsensus(outcome1, outcome2);
-      if (!fairOdds) continue;
+      const fair = calculateNoVigOdds(sharp1.odds, sharp2.odds);
 
-      // Check each book's odds against fair value
-      for (const bookOdd of outcome1.bookOdds) {
-        const ev = calculateEV(bookOdd.odds, fairOdds.fairProb1);
-
-        if (ev.evPercentage >= minEV) {
-          opportunities.push({
-            eventId: event.id,
-            event,
-            marketType: market.type,
-            outcomeName: outcome1.name,
-            bookId: bookOdd.bookId,
-            bookOdds: bookOdd.odds,
-            fairOdds: fairOdds.fairOdds1,
-            fairProbability: fairOdds.fairProb1,
-            evPercentage: ev.evPercentage,
-            edge: ev.edge,
-            kellySuggestion: kellyStakeAmerican(
-              fairOdds.fairProb1,
-              bookOdd.odds,
-              bankroll,
-              kellyFraction
-            ),
-          });
-        }
-      }
-
-      for (const bookOdd of outcome2.bookOdds) {
-        const ev = calculateEV(bookOdd.odds, fairOdds.fairProb2);
-
-        if (ev.evPercentage >= minEV) {
-          opportunities.push({
-            eventId: event.id,
-            event,
-            marketType: market.type,
-            outcomeName: outcome2.name,
-            bookId: bookOdd.bookId,
-            bookOdds: bookOdd.odds,
-            fairOdds: fairOdds.fairOdds2,
-            fairProbability: fairOdds.fairProb2,
-            evPercentage: ev.evPercentage,
-            edge: ev.edge,
-            kellySuggestion: kellyStakeAmerican(
-              fairOdds.fairProb2,
-              bookOdd.odds,
-              bankroll,
-              kellyFraction
-            ),
-          });
-        }
-      }
+      // Compare every NON-sharp book's price against the sharp fair line.
+      opportunities.push(
+        ...checkSide(event, market.type, outcome1, fair.fairProb1, fair.fairOdds1, minEV, bankroll, kellyFraction),
+        ...checkSide(event, market.type, outcome2, fair.fairProb2, fair.fairOdds2, minEV, bankroll, kellyFraction),
+      );
     }
   }
 
@@ -96,74 +57,41 @@ export function findEVOpportunities(
   return opportunities.sort((a, b) => b.evPercentage - a.evPercentage);
 }
 
-interface FairOddsResult {
-  fairProb1: number;
-  fairProb2: number;
-  fairOdds1: number;
-  fairOdds2: number;
-}
+function checkSide(
+  event: Event,
+  marketType: MarketType,
+  outcome: MarketOutcome,
+  fairProbability: number,
+  fairOdds: number,
+  minEV: number,
+  bankroll: number,
+  kellyFraction: number
+): EVOpportunity[] {
+  const result: EVOpportunity[] = [];
 
-/**
- * Calculate fair odds using market consensus
- *
- * Takes the sharpest odds for each side (lowest vig combination)
- * to approximate true probabilities.
- */
-function calculateMarketConsensus(
-  outcome1: Event['markets'][0]['outcomes'][0],
-  outcome2: Event['markets'][0]['outcomes'][0]
-): FairOddsResult | null {
-  // Find the best odds for each outcome (these represent the "sharpest" view)
-  const bestOdds1 = outcome1.bestOdds?.odds;
-  const bestOdds2 = outcome2.bestOdds?.odds;
+  for (const bookOdd of outcome.bookOdds) {
+    // Never flag a sharp book against itself (Pinnacle vs Pinnacle is not +EV).
+    if (SHARP_BOOK_PRIORITY.includes(bookOdd.bookId as (typeof SHARP_BOOK_PRIORITY)[number])) {
+      continue;
+    }
 
-  if (!bestOdds1 || !bestOdds2) return null;
+    const ev = calculateEV(bookOdd.odds, fairProbability);
+    if (ev.evPercentage < minEV) continue;
 
-  // Calculate no-vig fair odds from the best available odds
-  const noVig = calculateNoVigOdds(bestOdds1, bestOdds2);
-
-  return {
-    fairProb1: noVig.fairProb1,
-    fairProb2: noVig.fairProb2,
-    fairOdds1: noVig.fairOdds1,
-    fairOdds2: noVig.fairOdds2,
-  };
-}
-
-/**
- * Alternative: Calculate consensus using average implied probability
- * across all books (more stable but less sharp)
- */
-export function calculateAverageConsensus(
-  outcome1: Event['markets'][0]['outcomes'][0],
-  outcome2: Event['markets'][0]['outcomes'][0]
-): FairOddsResult | null {
-  if (outcome1.bookOdds.length === 0 || outcome2.bookOdds.length === 0) {
-    return null;
+    result.push({
+      eventId: event.id,
+      event,
+      marketType,
+      outcomeName: outcome.name,
+      bookId: bookOdd.bookId,
+      bookOdds: bookOdd.odds,
+      fairOdds,
+      fairProbability,
+      evPercentage: ev.evPercentage,
+      edge: ev.edge,
+      kellySuggestion: kellyStakeAmerican(fairProbability, bookOdd.odds, bankroll, kellyFraction),
+    });
   }
 
-  // Average implied probability for each outcome
-  const avgImplied1 =
-    outcome1.bookOdds.reduce((sum, bo) => sum + americanToImplied(bo.odds), 0) /
-    outcome1.bookOdds.length;
-
-  const avgImplied2 =
-    outcome2.bookOdds.reduce((sum, bo) => sum + americanToImplied(bo.odds), 0) /
-    outcome2.bookOdds.length;
-
-  // Normalize to remove vig
-  const total = avgImplied1 + avgImplied2;
-  const fairProb1 = avgImplied1 / total;
-  const fairProb2 = avgImplied2 / total;
-
-  // Convert back to American odds
-  const fairOdds1 = fairProb1 >= 0.5
-    ? Math.round(-100 * fairProb1 / (1 - fairProb1))
-    : Math.round(100 * (1 - fairProb1) / fairProb1);
-
-  const fairOdds2 = fairProb2 >= 0.5
-    ? Math.round(-100 * fairProb2 / (1 - fairProb2))
-    : Math.round(100 * (1 - fairProb2) / fairProb2);
-
-  return { fairProb1, fairProb2, fairOdds1, fairOdds2 };
+  return result;
 }
