@@ -1,11 +1,11 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom';
 import { Betslip, BetslipToggle } from '../betslip';
 
 const navItems = [
-  { path: '/', label: 'Odds' },
-  { path: '/ev', label: '+EV Finder' },
-  { path: '/arb', label: 'Arbitrage' },
-  { path: '/exchanges', label: 'Exchanges' },
+  { path: '/app', label: 'Odds' },
+  { path: '/app/ev', label: '+EV Finder' },
+  { path: '/app/arb', label: 'Arbitrage' },
+  { path: '/app/exchanges', label: 'Exchanges' },
 ];
 
 export default function Layout() {
@@ -17,7 +17,9 @@ export default function Layout() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-white">NY Sharp Edge</span>
+              <Link to="/" className="text-xl font-bold text-white hover:text-gray-200 transition-colors">
+                NY Sharp Edge
+              </Link>
               <span className="text-xs bg-blue-600 px-2 py-0.5 rounded text-white">BETA</span>
             </div>
 
