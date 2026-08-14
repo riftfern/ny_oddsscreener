@@ -36,3 +36,6 @@ coverage/
 # Misc
 *.tsbuildinfo
 vite.config.js
+
+# Hermes plans/notes
+.hermes/
