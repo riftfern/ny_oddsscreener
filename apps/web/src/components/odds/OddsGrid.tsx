@@ -1,5 +1,5 @@
 import type { Event, SportsbookId, MarketType, BookOdds } from '@ny-sharp-edge/shared';
-import { SPORTSBOOK_INFO, formatAmerican } from '@ny-sharp-edge/shared';
+import { getVenue, formatAmerican } from '@ny-sharp-edge/shared';
 import { useOddsStore } from '@/stores/oddsStore';
 import { useBetslipStore } from '@/stores/betslipStore';
 
@@ -152,7 +152,7 @@ function EventCard({ event, displayedBooks }: EventCardProps) {
                 </span>
               </th>
               {displayedBooks.map((bookId) => {
-                const book = SPORTSBOOK_INFO[bookId];
+                const book = getVenue(bookId);
                 return (
                   <th key={bookId} className="px-1.5 py-2.5 w-20">
                     <span
@@ -257,9 +257,9 @@ function MarketRows({ event, marketType, outcomes, displayedBooks, isLast }: Mar
                 </span>
                 <span
                   className="text-[10px] font-medium mt-0.5"
-                  style={{ color: SPORTSBOOK_INFO[outcome.bestOdds.bookId].color }}
+                  style={{ color: getVenue(outcome.bestOdds.bookId).color }}
                 >
-                  {SPORTSBOOK_INFO[outcome.bestOdds.bookId].shortName}
+                  {getVenue(outcome.bestOdds.bookId).shortName}
                 </span>
               </div>
             )}

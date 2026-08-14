@@ -52,6 +52,21 @@ export const VENUES: Record<string, Venue> = {
   polymarket: { id: 'polymarket', name: 'Polymarket', shortName: 'PM', color: '#0066ff', deepLink: 'https://polymarket.com', kind: 'prediction', regions: ['us_ex'] },
 };
 
+// Gray fallback so an unknown/new book id never crashes the UI.
+const UNKNOWN_VENUE: Venue = {
+  id: 'unknown',
+  name: 'Unknown',
+  shortName: '?',
+  color: '#6b7280',
+  deepLink: '',
+  kind: 'sportsbook',
+  regions: [],
+};
+
+export function getVenue(bookId: string): Venue {
+  return VENUES[bookId] ?? UNKNOWN_VENUE;
+}
+
 export interface Sportsbook {
   id: SportsbookId;
   name: string;
@@ -194,7 +209,7 @@ export interface BetSelection {
   event: Event;
   marketType: MarketType;
   outcomeName: string;
-  bookId: SportsbookId;
+  bookId: string; // widened: may be a sharp/exchange/prediction key
   odds: AmericanOdds;
   line?: number;
   stake: number;

@@ -1,4 +1,4 @@
-import { SPORTSBOOK_INFO } from '@ny-sharp-edge/shared';
+import { getVenue } from '@ny-sharp-edge/shared';
 import { useBetslipStore, useBooksWithBets } from '../../stores/betslipStore';
 import { BetCard } from './BetCard';
 import { calculatePayout } from '@ny-sharp-edge/shared';
@@ -24,7 +24,7 @@ export function Betslip() {
   // Handle place bet - open sportsbook
   const handlePlaceBet = () => {
     if (!activeTab) return;
-    const book = SPORTSBOOK_INFO[activeTab];
+    const book = getVenue(activeTab);
     window.open(book.deepLink, '_blank');
   };
 
@@ -75,7 +75,7 @@ export function Betslip() {
         {booksWithBets.length > 0 && (
           <div className="flex overflow-x-auto border-b border-gray-700 px-2 gap-1 py-2">
             {booksWithBets.map((bookId) => {
-              const book = SPORTSBOOK_INFO[bookId];
+              const book = getVenue(bookId);
               const count = bets.filter((b) => b.bookId === bookId).length;
               const isActive = activeTab === bookId;
 
@@ -137,7 +137,7 @@ export function Betslip() {
               onClick={() => clearBook(activeTab)}
               className="text-sm text-gray-400 hover:text-red-400 mb-3 transition-colors"
             >
-              Clear {SPORTSBOOK_INFO[activeTab].name} bets
+              Clear {getVenue(activeTab).name} bets
             </button>
 
             {/* Totals */}
@@ -163,7 +163,7 @@ export function Betslip() {
                 }
               `}
             >
-              <span>Place Bets on {SPORTSBOOK_INFO[activeTab].name}</span>
+              <span>Place Bets on {getVenue(activeTab).name}</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>

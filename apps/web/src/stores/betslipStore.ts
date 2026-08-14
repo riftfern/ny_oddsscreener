@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
-import type { BetSelection, SportsbookId, Event, MarketType, AmericanOdds } from '@ny-sharp-edge/shared';
+import type { BetSelection, Event, MarketType, AmericanOdds } from '@ny-sharp-edge/shared';
 
 interface BetslipStore {
   bets: BetSelection[];
   isOpen: boolean;
-  activeTab: SportsbookId | null;
+  activeTab: string | null;
 
   // Actions
   addBet: (bet: {
@@ -13,25 +13,25 @@ interface BetslipStore {
     event: Event;
     marketType: MarketType;
     outcomeName: string;
-    bookId: SportsbookId;
+    bookId: string;
     odds: AmericanOdds;
     line?: number;
   }) => void;
   removeBet: (betId: string) => void;
   updateStake: (betId: string, stake: number) => void;
-  clearBook: (bookId: SportsbookId) => void;
+  clearBook: (bookId: string) => void;
   clearAll: () => void;
   togglePanel: () => void;
   openPanel: () => void;
   closePanel: () => void;
-  setActiveTab: (bookId: SportsbookId) => void;
+  setActiveTab: (bookId: string) => void;
 }
 
 // Helper to generate unique IDs
 const generateId = () => `bet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 // Helper to check if bet already exists
-const betExists = (bets: BetSelection[], eventId: string, bookId: SportsbookId, outcomeName: string) =>
+const betExists = (bets: BetSelection[], eventId: string, bookId: string, outcomeName: string) =>
   bets.some((b) => b.eventId === eventId && b.bookId === bookId && b.outcomeName === outcomeName);
 
 export const useBetslipStore = create<BetslipStore>((set) => ({
@@ -106,7 +106,7 @@ export const useBetslipStore = create<BetslipStore>((set) => ({
 }));
 
 // Selector hooks for common computations
-export const useBetsByBook = (bookId: SportsbookId) =>
+export const useBetsByBook = (bookId: string) =>
   useBetslipStore(useShallow((state) => state.bets.filter((b) => b.bookId === bookId)));
 
 export const useBooksWithBets = () =>

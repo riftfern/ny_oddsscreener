@@ -1,5 +1,5 @@
 import type { ArbitrageOpportunity } from '@ny-sharp-edge/shared';
-import { SPORTSBOOK_INFO, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
+import { getVenue, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
 
 interface ArbitrageOpportunityCardProps {
   opportunity: ArbitrageOpportunity;
@@ -50,7 +50,7 @@ export default function ArbitrageOpportunityCard({ opportunity }: ArbitrageOppor
       {/* Legs */}
       <div className="space-y-2 mb-3">
         {opportunity.legs.map((leg, index) => {
-          const book = SPORTSBOOK_INFO[leg.bookId];
+          const book = getVenue(leg.bookId);
           return (
             <div
               key={index}

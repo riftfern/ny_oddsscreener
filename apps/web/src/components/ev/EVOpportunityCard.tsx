@@ -1,12 +1,12 @@
 import type { EVOpportunity } from '@ny-sharp-edge/shared';
-import { SPORTSBOOK_INFO, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
+import { getVenue, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
 
 interface EVOpportunityCardProps {
   opportunity: EVOpportunity;
 }
 
 export default function EVOpportunityCard({ opportunity }: EVOpportunityCardProps) {
-  const book = SPORTSBOOK_INFO[opportunity.bookId];
+  const book = getVenue(opportunity.bookId);
   const sport = SPORT_INFO[opportunity.event.sportKey];
 
   const gameTime = new Date(opportunity.event.commenceTime).toLocaleString('en-US', {
