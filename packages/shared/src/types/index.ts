@@ -80,6 +80,8 @@ export const SPORTS = {
   NHL: 'icehockey_nhl',
   NCAAF: 'americanfootball_ncaaf',
   NCAAB: 'basketball_ncaab',
+  EPL: 'soccer_epl',
+  MLS: 'soccer_usa_mls',
 } as const;
 
 export type SportKey = (typeof SPORTS)[keyof typeof SPORTS];
@@ -97,6 +99,8 @@ export const SPORT_INFO: Record<SportKey, Sport> = {
   icehockey_nhl: { key: 'icehockey_nhl', name: 'NHL', shortName: 'NHL' },
   americanfootball_ncaaf: { key: 'americanfootball_ncaaf', name: 'College Football', shortName: 'NCAAF' },
   basketball_ncaab: { key: 'basketball_ncaab', name: 'College Basketball', shortName: 'NCAAB' },
+  soccer_epl: { key: 'soccer_epl', name: 'Premier League', shortName: 'EPL' },
+  soccer_usa_mls: { key: 'soccer_usa_mls', name: 'MLS', shortName: 'MLS' },
 };
 
 // Odds types

@@ -284,6 +284,8 @@ const EVENTS_BY_SPORT: Record<SportKey, Event[]> = {
   [SPORTS.NHL]: NHL_EVENTS,
   [SPORTS.NCAAF]: [],
   [SPORTS.NCAAB]: [],
+  [SPORTS.EPL]: [],
+  [SPORTS.MLS]: [],
 };
 
 export function getMockEvents(sport: SportKey): Event[] {
