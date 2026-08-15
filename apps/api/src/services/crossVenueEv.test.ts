@@ -117,4 +117,28 @@ describe('findCrossVenueEVOpportunities', () => {
     const fromExchange = result.filter((o) => o.source === 'exchange');
     expect(fromExchange.some((o) => o.bookId === 'fanduel')).toBe(true);
   });
+
+  it('does not build a no-vig mid from mixed venues', () => {
+    const defaultEvents = [makeEvent('evt-1', { withPinnacle: false, withExchange: false })];
+    const mixed: Event = {
+      ...makeExchangeEvent('evt-1'),
+      markets: [
+        {
+          type: 'h2h',
+          outcomes: [
+            {
+              name: 'Lakers',
+              bookOdds: [{ bookId: 'kalshi', odds: +200, updatedAt: '2026-08-14T00:00:00Z' }],
+            },
+            {
+              name: 'Knicks',
+              bookOdds: [{ bookId: 'polymarket', odds: +200, updatedAt: '2026-08-14T00:00:00Z' }],
+            },
+          ],
+        },
+      ],
+    };
+    const result = findCrossVenueEVOpportunities(defaultEvents, [mixed], { minEV: 0 });
+    expect(result.filter((o) => o.source === 'exchange')).toHaveLength(0);
+  });
 });

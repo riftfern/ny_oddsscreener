@@ -9,7 +9,12 @@ router.get('/', async (req, res) => {
   const minEV = parseFloat(req.query.minEV as string) || 1;
 
   try {
-    const data = await fetchEVResponse({ sport, minEV });
+    const plan = (req as { resolvedPlan?: string }).resolvedPlan;
+    const data = await fetchEVResponse({
+      sport,
+      minEV,
+      includeCross: plan === 'pro',
+    });
     res.json(data);
   } catch (error) {
     console.error('Error finding EV opportunities:', error);

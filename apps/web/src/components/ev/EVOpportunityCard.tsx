@@ -33,6 +33,11 @@ export default function EVOpportunityCard({ opportunity }: EVOpportunityCardProp
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs bg-gray-700 px-2 py-0.5 rounded">{sport.shortName}</span>
             <span className="text-xs text-gray-400">{marketLabel}</span>
+            {opportunity.source === 'exchange' && (
+              <span className="text-xs bg-teal-800/80 text-teal-200 px-2 py-0.5 rounded">
+                vs exchange
+              </span>
+            )}
           </div>
           <div className="text-sm text-gray-300">
             {opportunity.event.awayTeam} @ {opportunity.event.homeTeam}

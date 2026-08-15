@@ -82,13 +82,19 @@ export function findCrossVenueEVOpportunities(
         );
       }
 
-      // Case B: exchange no-vig mid as fair line; soft book may be +EV.
-      const exBook1 = exForOutcome1.bookOdds[0];
-      const exBook2 = exForOutcome2.bookOdds[0];
-      if (exBook1 && exBook2) {
+      // Case B: each exchange venue's own no-vig mid is the fair line.
+      // Never pair Kalshi on one side with Polymarket on the other.
+      const softBooks1 = outcome1.bookOdds.filter(
+        (bo) => !isSharpBook(bo.bookId) && !isExchangeBook(bo.bookId)
+      );
+      const softBooks2 = outcome2.bookOdds.filter(
+        (bo) => !isSharpBook(bo.bookId) && !isExchangeBook(bo.bookId)
+      );
+      for (const venue of EXCHANGE_BOOK_IDS) {
+        const exBook1 = exForOutcome1.bookOdds.find((bo) => bo.bookId === venue);
+        const exBook2 = exForOutcome2.bookOdds.find((bo) => bo.bookId === venue);
+        if (!exBook1 || !exBook2) continue;
         const fair = calculateNoVigOdds(exBook1.odds, exBook2.odds);
-        const softBooks1 = outcome1.bookOdds.filter((bo) => !isSharpBook(bo.bookId));
-        const softBooks2 = outcome2.bookOdds.filter((bo) => !isSharpBook(bo.bookId));
         opportunities.push(
           ...checkSide(event, market.type, outcome1, softBooks1, fair.fairProb1, fair.fairOdds1, 'exchange', minEV, bankroll, kellyFraction),
           ...checkSide(event, market.type, outcome2, softBooks2, fair.fairProb2, fair.fairOdds2, 'exchange', minEV, bankroll, kellyFraction),
