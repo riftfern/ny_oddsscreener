@@ -15,6 +15,8 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    // Reachable from a phone on the same Wi‑Fi (localhost is laptop-only).
+    host: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
 import {
   ClerkProvider,
   useUser,
@@ -7,6 +7,7 @@ import {
   SignedOut,
   RedirectToSignIn,
 } from '@clerk/clerk-react';
+import { hasBooksSetup, parseUserBooks } from '@ny-sharp-edge/shared';
 import { setAuthTokenProvider } from '@/services/api';
 
 export type Plan = 'free' | 'edge' | 'pro';
@@ -15,11 +16,20 @@ interface PlanContextValue {
   plan: Plan;
   isLoaded: boolean;
   getToken?: () => Promise<string | null>;
+  signedIn: boolean;
+  /** null = signed out / no filter. string[] = only these shops. */
+  books: string[] | null;
+  needsBookSetup: boolean;
+  setBooks: (ids: string[]) => Promise<void>;
 }
 
 const PlanContext = createContext<PlanContextValue>({
   plan: 'free',
   isLoaded: false,
+  signedIn: false,
+  books: null,
+  needsBookSetup: false,
+  setBooks: async () => undefined,
 });
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
@@ -32,11 +42,30 @@ function isValidPlan(value: unknown): value is Plan {
 
 function ClerkPlanResolver({ children }: { children: ReactNode }) {
   const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const fromClerk = isValidPlan(user?.publicMetadata?.plan) ? user.publicMetadata.plan : undefined;
   // Until REQUIRE_AUTH is on, keep DEV_PLAN so the board stays usable while Jack
   // creates the first Clerk account. Signed-in metadata.plan still wins.
   const plan = fromClerk ?? (requireAuth ? 'free' : devPlan);
+  const signedIn = Boolean(isSignedIn && user);
+  const setup = signedIn && hasBooksSetup(user?.unsafeMetadata);
+  const books = signedIn && setup ? parseUserBooks(user?.unsafeMetadata?.books) : signedIn ? [] : null;
+  const needsBookSetup = signedIn && isLoaded && !setup;
+
+  const setBooks = useCallback(
+    async (ids: string[]) => {
+      if (!user) return;
+      const next = parseUserBooks(ids);
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          books: next,
+          booksSet: true,
+        },
+      });
+    },
+    [user]
+  );
 
   useEffect(() => {
     if (getToken) {
@@ -45,7 +74,9 @@ function ClerkPlanResolver({ children }: { children: ReactNode }) {
   }, [getToken]);
 
   return (
-    <PlanContext.Provider value={{ plan, isLoaded, getToken }}>
+    <PlanContext.Provider
+      value={{ plan, isLoaded, getToken, signedIn, books, needsBookSetup, setBooks }}
+    >
       {children}
     </PlanContext.Provider>
   );
@@ -53,7 +84,16 @@ function ClerkPlanResolver({ children }: { children: ReactNode }) {
 
 function StubPlanResolver({ children }: { children: ReactNode }) {
   return (
-    <PlanContext.Provider value={{ plan: devPlan, isLoaded: true }}>
+    <PlanContext.Provider
+      value={{
+        plan: devPlan,
+        isLoaded: true,
+        signedIn: false,
+        books: null,
+        needsBookSetup: false,
+        setBooks: async () => undefined,
+      }}
+    >
       {children}
     </PlanContext.Provider>
   );

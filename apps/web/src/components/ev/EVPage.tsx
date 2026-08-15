@@ -11,6 +11,8 @@ import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 import { formatAmerican, getSport, getVenue, type EVOpportunity, type MarketType } from '@ny-sharp-edge/shared';
 import { groupEVOpportunities, type GroupedEV } from '@/utils/groupEV';
+import { usePlan } from '@/components/auth/AuthProvider';
+import BookEditor from '@/components/auth/BookEditor';
 
 const MIN_EV_OPTIONS = [0.5, 1, 2, 3, 5];
 
@@ -40,8 +42,16 @@ export default function EVPage() {
   const sport = useOddsStore((s) => s.filter.sport);
   const { data, isLoading, error, dataUpdatedAt } = useEVOpportunities(minEV, sport);
   const debug = useDebugMode();
+  const { books } = usePlan();
+  const [editingBooks, setEditingBooks] = useState(false);
 
-  const groups = data ? groupEVOpportunities(data.opportunities) : [];
+  const groups = data
+    ? groupEVOpportunities(
+        books
+          ? data.opportunities.filter((o) => books.includes(o.bookId))
+          : data.opportunities
+      )
+    : [];
 
   return (
     <PlanGate requiredPlan="edge">
@@ -51,7 +61,9 @@ export default function EVPage() {
         <div>
           <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Edges</h1>
           <p className="text-ink-dim font-mono text-[13px] mt-1">
-            Books paying more than the Pinnacle number
+            {books
+              ? 'Better numbers at your books'
+              : 'Books paying more than the Pinnacle number'}
           </p>
         </div>
 
@@ -68,6 +80,20 @@ export default function EVPage() {
 
       <div className="flex flex-col gap-3">
         <SportSelector sharpCoverage={data?.sharpCoverage} />
+        {books && (
+          <button
+            type="button"
+            onClick={() => setEditingBooks(true)}
+            className="self-start font-mono text-[11px] uppercase tracking-[0.14em] text-lichen hover:text-ink border border-moss px-2 py-1"
+          >
+            + Add book
+          </button>
+        )}
+        {editingBooks && (
+          <div className="border border-line bg-bg-2 p-5">
+            <BookEditor onClose={() => setEditingBooks(false)} />
+          </div>
+        )}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="label">Min EV</span>

@@ -22,6 +22,12 @@ describe('bestPlaceableOdds', () => {
     const others = otherPlaceableOdds(books);
     expect(others.map((b) => b.bookId)).toEqual(['kalshi', 'draftkings']);
   });
+
+  it('only considers books the user has', () => {
+    const best = bestPlaceableOdds(books, ['draftkings']);
+    expect(best?.bookId).toBe('draftkings');
+    expect(otherPlaceableOdds(books, ['draftkings'])).toEqual([]);
+  });
 });
 
 describe('isUpcomingEvent', () => {

@@ -11,14 +11,18 @@ import DebugFooter from '@/components/common/DebugFooter';
 import SharpCoverageNotice from '@/components/common/SharpCoverageNotice';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
-import { SPORT_INFO, isUpcomingEvent, type MarketType } from '@ny-sharp-edge/shared';
+import { SPORT_INFO, getVenue, isUpcomingEvent, type MarketType } from '@ny-sharp-edge/shared';
+import { usePlan } from '@/components/auth/AuthProvider';
+import BookEditor from '@/components/auth/BookEditor';
 
 export default function OddsPage() {
   const { filter, setMarketType } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
   const debug = useDebugMode();
   const checkout = useCheckout();
+  const { books } = usePlan();
   const [horizon, setHorizon] = useState<'soon' | 'all'>('soon');
+  const [editingBooks, setEditingBooks] = useState(false);
 
   const sportName = SPORT_INFO[filter.sport].name;
   const marketType: MarketType = filter.marketType === 'all' ? 'h2h' : filter.marketType;
@@ -37,7 +41,9 @@ export default function OddsPage() {
         <div>
           <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Odds</h1>
           <p className="text-ink-dim font-mono text-[13px] mt-1">
-            Best shop to bet. Pinnacle is the fair line.
+            {books
+              ? `Your books only. PIN is the fair line.`
+              : 'Best shop to bet. Pinnacle is the fair line.'}
           </p>
         </div>
 
@@ -83,6 +89,30 @@ export default function OddsPage() {
           </button>
         </div>
       </div>
+
+      {books && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="label">Books</span>
+          {books.map((id) => (
+            <span key={id} className="font-mono text-[11px] text-ink border border-line px-2 py-1">
+              {getVenue(id).shortName}
+            </span>
+          ))}
+          <button
+            type="button"
+            onClick={() => setEditingBooks(true)}
+            className="font-mono text-[11px] uppercase tracking-[0.14em] text-lichen hover:text-ink border border-moss px-2 py-1"
+          >
+            + Add book
+          </button>
+        </div>
+      )}
+
+      {editingBooks && (
+        <div className="border border-line bg-bg-2 p-5">
+          <BookEditor onClose={() => setEditingBooks(false)} />
+        </div>
+      )}
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
 
@@ -144,7 +174,9 @@ export default function OddsPage() {
         </div>
       )}
 
-      {boardEvents.length > 0 && <OddsBoard events={boardEvents} marketType={marketType} />}
+      {boardEvents.length > 0 && (
+        <OddsBoard events={boardEvents} marketType={marketType} shopIds={books} />
+      )}
 
       {debug && (
         <DebugFooter

@@ -10,13 +10,20 @@ export function isPlaceableShop(bookId: string): boolean {
   return !isSharpVenue(bookId);
 }
 
-export function placeableOdds(bookOdds: BookOdds[]): BookOdds[] {
+export function placeableOdds(bookOdds: BookOdds[], allowed?: string[] | null): BookOdds[] {
+  if (allowed) {
+    const allow = new Set(allowed);
+    return bookOdds.filter((b) => allow.has(b.bookId));
+  }
   return bookOdds.filter((b) => isPlaceableShop(b.bookId));
 }
 
-/** Best American price among placeable shops (higher is better). */
-export function bestPlaceableOdds(bookOdds: BookOdds[]): BookOdds | undefined {
-  const shops = placeableOdds(bookOdds);
+/** Best American price among shops the user can actually use. */
+export function bestPlaceableOdds(
+  bookOdds: BookOdds[],
+  allowed?: string[] | null
+): BookOdds | undefined {
+  const shops = placeableOdds(bookOdds, allowed);
   if (shops.length === 0) return undefined;
   return shops.reduce((best, current) => (current.odds > best.odds ? current : best));
 }
@@ -25,9 +32,12 @@ export function pinnacleOdds(bookOdds: BookOdds[]): BookOdds | undefined {
   return bookOdds.find((b) => b.bookId === 'pinnacle');
 }
 
-export function otherPlaceableOdds(bookOdds: BookOdds[]): BookOdds[] {
-  const best = bestPlaceableOdds(bookOdds);
-  return placeableOdds(bookOdds)
+export function otherPlaceableOdds(
+  bookOdds: BookOdds[],
+  allowed?: string[] | null
+): BookOdds[] {
+  const best = bestPlaceableOdds(bookOdds, allowed);
+  return placeableOdds(bookOdds, allowed)
     .filter((b) => b.bookId !== best?.bookId)
     .sort((a, b) => b.odds - a.odds);
 }

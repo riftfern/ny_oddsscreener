@@ -13,7 +13,11 @@ export DEV_PLAN=pro
 export VITE_DEV_PLAN=pro
 export VITE_REQUIRE_AUTH=false
 
+LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo "LineEdge demo (MOCK) — http://localhost:3000   API :3001"
+if [ -n "${LAN_IP}" ]; then
+  echo "Phone on same Wi‑Fi — http://${LAN_IP}:3000"
+fi
 echo "USE_MOCK_DATA=true — apps/api/.env cannot flip this back to live"
 
 # Same two-process recipe as the Gate 7 handoff, one script.

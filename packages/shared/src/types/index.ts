@@ -308,3 +308,4 @@ export interface BetSelection {
 
 export * from './tennis.js';
 export * from './shops.js';
+export * from './userBooks.js';

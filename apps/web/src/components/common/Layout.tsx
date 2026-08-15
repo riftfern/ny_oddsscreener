@@ -1,6 +1,7 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { usePlan } from '@/components/auth/AuthProvider';
 import AuthControls from '@/components/auth/AuthControls';
+import BookOnboarding from '@/components/auth/BookOnboarding';
 
 const navItems = [
   { path: '/app', label: 'Odds', end: true },
@@ -10,7 +11,7 @@ const navItems = [
 ];
 
 export default function Layout() {
-  const { plan, isLoaded } = usePlan();
+  const { plan, isLoaded, needsBookSetup } = usePlan();
 
   return (
     <div className="min-h-screen bg-bg text-ink flex flex-col">
@@ -55,7 +56,7 @@ export default function Layout() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
-        <Outlet />
+        {needsBookSetup ? <BookOnboarding /> : <Outlet />}
       </main>
 
       <footer className="border-t border-line">

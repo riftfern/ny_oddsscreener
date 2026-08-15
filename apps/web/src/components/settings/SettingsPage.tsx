@@ -5,11 +5,12 @@ import { api } from '@/services/api';
 import { useCheckout } from '@/hooks/useCheckout';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { Link } from 'react-router-dom';
+import BookEditor from '@/components/auth/BookEditor';
 
 const requireAuth = import.meta.env.VITE_REQUIRE_AUTH === 'true';
 
 export default function SettingsPage() {
-  const { plan } = usePlan();
+  const { plan, signedIn } = usePlan();
   const balance = useBankrollStore((s) => s.balance);
   const addFunds = useBankrollStore((s) => s.addFunds);
   const withdrawFunds = useBankrollStore((s) => s.withdrawFunds);
@@ -44,8 +45,16 @@ export default function SettingsPage() {
     <div className="space-y-8 max-w-2xl">
       <div>
         <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Settings</h1>
-        <p className="text-ink-dim font-mono text-[13px] mt-1">Plan and local bankroll.</p>
+        <p className="text-ink-dim font-mono text-[13px] mt-1">
+          Your books, plan, and local bankroll.
+        </p>
       </div>
+
+      {signedIn && (
+        <section className="border border-line bg-bg-2 p-6">
+          <BookEditor />
+        </section>
+      )}
 
       <section className="border border-line bg-bg-2 p-6 space-y-3">
         <h2 className="label">Plan</h2>

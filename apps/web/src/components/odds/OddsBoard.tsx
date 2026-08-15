@@ -11,6 +11,8 @@ import {
 interface OddsBoardProps {
   events: Event[];
   marketType: MarketType;
+  /** If set, only these shops appear as Best / Also / OPEN. PIN stays as fair line. */
+  shopIds?: string[] | null;
 }
 
 function formatWhen(iso: string): string {
@@ -34,7 +36,7 @@ function shopHref(bookId: string): string | undefined {
   return link || undefined;
 }
 
-export default function OddsBoard({ events, marketType }: OddsBoardProps) {
+export default function OddsBoard({ events, marketType, shopIds }: OddsBoardProps) {
   if (events.length === 0) return null;
 
   return (
@@ -51,7 +53,7 @@ export default function OddsBoard({ events, marketType }: OddsBoardProps) {
         </thead>
         <tbody>
           {events.map((event) => (
-            <EventBlock key={event.id} event={event} marketType={marketType} />
+            <EventBlock key={event.id} event={event} marketType={marketType} shopIds={shopIds} />
           ))}
         </tbody>
       </table>
@@ -59,7 +61,15 @@ export default function OddsBoard({ events, marketType }: OddsBoardProps) {
   );
 }
 
-function EventBlock({ event, marketType }: { event: Event; marketType: MarketType }) {
+function EventBlock({
+  event,
+  marketType,
+  shopIds,
+}: {
+  event: Event;
+  marketType: MarketType;
+  shopIds?: string[] | null;
+}) {
   const market = event.markets.find((m) => m.type === marketType);
   const outcomes = market?.outcomes ?? [];
   const sport = getSport(event.sportKey);
@@ -82,8 +92,8 @@ function EventBlock({ event, marketType }: { event: Event; marketType: MarketTyp
   return (
     <>
       {outcomes.map((outcome, idx) => {
-        const best = bestPlaceableOdds(outcome.bookOdds);
-        const others = otherPlaceableOdds(outcome.bookOdds);
+        const best = bestPlaceableOdds(outcome.bookOdds, shopIds);
+        const others = otherPlaceableOdds(outcome.bookOdds, shopIds);
         const pin = pinnacleOdds(outcome.bookOdds);
         const href = best ? shopHref(best.bookId) : undefined;
         const book = best ? getVenue(best.bookId) : undefined;
