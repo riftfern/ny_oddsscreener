@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { EVOpportunity } from '@ny-sharp-edge/shared';
-import { getVenue, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
+import { getVenue, getSport, formatAmerican } from '@ny-sharp-edge/shared';
 
 interface EVOpportunityCardProps {
   opportunity: EVOpportunity;
@@ -8,7 +8,7 @@ interface EVOpportunityCardProps {
 
 export default function EVOpportunityCard({ opportunity }: EVOpportunityCardProps) {
   const book = getVenue(opportunity.bookId);
-  const sport = SPORT_INFO[opportunity.event.sportKey];
+  const sport = getSport(opportunity.event.sportKey);
 
   const gameTime = new Date(opportunity.event.commenceTime).toLocaleString('en-US', {
     weekday: 'short',

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchOdds, fetchExchangeOdds, fetchExchangeOddsResponse, fetchOddsResponse, clearOddsCache } from './oddsApi';
+import { fetchOdds, fetchExchangeOdds, fetchExchangeOddsResponse, fetchOddsResponse, fetchEVResponse, clearOddsCache } from './oddsApi';
 
 // A single The Odds API event carrying FanDuel (soft) + Pinnacle (sharp) prices.
 function makeOddsApiPayload() {
@@ -204,6 +204,21 @@ describe('oddsApi fetchExchangeOdds', () => {
     expect(response.events).toHaveLength(1);
     expect(response.lastUpdated).toBeDefined();
     expect(response.cachedAt).toBeDefined();
+  });
+});
+
+describe('fetchEVResponse sport filter', () => {
+  const originalEnv = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it('scans only the selected sport — NFL mock rows stay NFL', async () => {
+    process.env.USE_MOCK_DATA = 'true';
+    const data = await fetchEVResponse({ sport: 'americanfootball_nfl', minEV: 0.5 });
+    expect(data.opportunities.every((o) => o.event.sportKey === 'americanfootball_nfl')).toBe(true);
+    expect(data.opportunities.some((o) => /canucks|oilers/i.test(`${o.event.awayTeam} ${o.event.homeTeam}`))).toBe(false);
   });
 });
 

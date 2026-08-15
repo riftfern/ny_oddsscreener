@@ -9,10 +9,10 @@ export function useOdds(sport: SportKey) {
   });
 }
 
-export function useEVOpportunities(minEV?: number) {
+export function useEVOpportunities(minEV?: number, sport?: SportKey) {
   return useQuery({
-    queryKey: ['ev', minEV],
-    queryFn: () => api.getEVOpportunities(minEV),
+    queryKey: ['ev', sport, minEV],
+    queryFn: () => api.getEVOpportunities(minEV, sport),
   });
 }
 

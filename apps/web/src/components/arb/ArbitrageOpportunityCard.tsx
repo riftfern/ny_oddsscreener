@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import type { ArbitrageOpportunity } from '@ny-sharp-edge/shared';
-import { getVenue, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
+import { getVenue, getSport, formatAmerican } from '@ny-sharp-edge/shared';
 
 interface ArbitrageOpportunityCardProps {
   opportunity: ArbitrageOpportunity;
 }
 
 export default function ArbitrageOpportunityCard({ opportunity }: ArbitrageOpportunityCardProps) {
-  const sport = SPORT_INFO[opportunity.event.sportKey];
+  const sport = getSport(opportunity.event.sportKey);
 
   const gameTime = new Date(opportunity.event.commenceTime).toLocaleString('en-US', {
     weekday: 'short',

@@ -90,9 +90,10 @@ export const api = {
     return fetchJson(`/odds/exchanges?${qs.toString()}`);
   },
 
-  getEVOpportunities: async (minEV?: number): Promise<EVResponse> => {
+  getEVOpportunities: async (minEV?: number, sport?: SportKey): Promise<EVResponse> => {
     const params = new URLSearchParams();
     if (minEV !== undefined) params.set('minEV', minEV.toString());
+    if (sport) params.set('sport', sport);
     const qs = params.toString();
     return fetchJson(`/ev${qs ? `?${qs}` : ''}`);
   },

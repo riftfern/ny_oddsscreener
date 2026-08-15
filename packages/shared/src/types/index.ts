@@ -30,41 +30,103 @@ export interface Venue {
 
 // Every book we may show, keyed by Odds API bookmaker key. Kept alongside
 // SPORTSBOOKS for now; SPORTSBOOKS is migrated off later (Task 1.6+).
+const INK_DIM = '#8a8d84';
+const PIN = '#c4b07a';
+
 export const VENUES: Record<string, Venue> = {
-  // US retail books
-  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: '#1493ff', deepLink: 'https://sportsbook.fanduel.com', kind: 'sportsbook', regions: ['us'] },
-  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: '#53d337', deepLink: 'https://sportsbook.draftkings.com', kind: 'sportsbook', regions: ['us'] },
-  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: '#c4a932', deepLink: 'https://sports.betmgm.com', kind: 'sportsbook', regions: ['us'] },
-  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: '#0a4833', deepLink: 'https://sportsbook.caesars.com', kind: 'sportsbook', regions: ['us'] },
-  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: '#1a73e8', deepLink: 'https://betrivers.com', kind: 'sportsbook', regions: ['us'] },
-  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: '#000000', deepLink: 'https://sportsbook.fanatics.com', kind: 'sportsbook', regions: ['us'] },
-  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: '#e31837', deepLink: 'https://www.ballybet.com', kind: 'sportsbook', regions: ['us'] },
-  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00', deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
-  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: '#027b5b', deepLink: 'https://www.bet365.com', kind: 'sportsbook', regions: ['eu'] },
+  // US retail books — forest/grey chips only, no rainbow
+  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: INK_DIM, deepLink: 'https://sportsbook.fanduel.com', kind: 'sportsbook', regions: ['us'] },
+  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: INK_DIM, deepLink: 'https://sportsbook.draftkings.com', kind: 'sportsbook', regions: ['us'] },
+  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: INK_DIM, deepLink: 'https://sports.betmgm.com', kind: 'sportsbook', regions: ['us'] },
+  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: INK_DIM, deepLink: 'https://sportsbook.caesars.com', kind: 'sportsbook', regions: ['us'] },
+  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: INK_DIM, deepLink: 'https://betrivers.com', kind: 'sportsbook', regions: ['us'] },
+  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: INK_DIM, deepLink: 'https://sportsbook.fanatics.com', kind: 'sportsbook', regions: ['us'] },
+  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: INK_DIM, deepLink: 'https://www.ballybet.com', kind: 'sportsbook', regions: ['us'] },
+  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: INK_DIM, deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
+  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: INK_DIM, deepLink: 'https://www.bet365.com', kind: 'sportsbook', regions: ['eu'] },
   // US books from other regions / non-NY legal
-  bovada: { id: 'bovada', name: 'Bovada', shortName: 'BOV', color: '#cc0000', deepLink: 'https://www.bovada.lv', kind: 'sportsbook', regions: ['us'] },
-  lowvig: { id: 'lowvig', name: 'LowVig', shortName: 'LV', color: '#6b7280', deepLink: 'https://www.lowvig.ag', kind: 'sportsbook', regions: ['us'] },
-  espnbet: { id: 'espnbet', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00', deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
+  bovada: { id: 'bovada', name: 'Bovada', shortName: 'BOV', color: INK_DIM, deepLink: 'https://www.bovada.lv', kind: 'sportsbook', regions: ['us'] },
+  lowvig: { id: 'lowvig', name: 'LowVig', shortName: 'LV', color: INK_DIM, deepLink: 'https://www.lowvig.ag', kind: 'sportsbook', regions: ['us'] },
+  espnbet: { id: 'espnbet', name: 'ESPN BET', shortName: 'ESPN', color: INK_DIM, deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
+  betonlineag: { id: 'betonlineag', name: 'BetOnline AG', shortName: 'BOAG', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
+  betfair_ex_eu: { id: 'betfair_ex_eu', name: 'Betfair EX EU', shortName: 'BFX', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['eu'] },
+  hardrockbet: { id: 'hardrockbet', name: 'Hard Rock Bet', shortName: 'HRB', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
+  unibet: { id: 'unibet', name: 'Unibet', shortName: 'UNI', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['eu'] },
+  unibet_us: { id: 'unibet_us', name: 'Unibet US', shortName: 'UNI', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
+  unibet_uk: { id: 'unibet_uk', name: 'Unibet UK', shortName: 'UNI', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['uk'] },
+  unibet_eu: { id: 'unibet_eu', name: 'Unibet EU', shortName: 'UNI', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['eu'] },
+  betparx: { id: 'betparx', name: 'BetPARX', shortName: 'PRX', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
+  gtbets: { id: 'gtbets', name: 'GT Bets', shortName: 'GT', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
+  matchbook: { id: 'matchbook', name: 'Matchbook', shortName: 'MBK', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['eu'] },
+  mybookieag: { id: 'mybookieag', name: 'MyBookie AG', shortName: 'MBA', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
+  coolbet: { id: 'coolbet', name: 'Coolbet', shortName: 'CLB', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['eu'] },
   // Sharp books (fair line)
-  pinnacle: { id: 'pinnacle', name: 'Pinnacle', shortName: 'PIN', color: '#d4af37', deepLink: 'https://www.pinnacle.com', kind: 'sportsbook', regions: ['eu'], isSharp: true },
+  pinnacle: { id: 'pinnacle', name: 'Pinnacle', shortName: 'PIN', color: PIN, deepLink: 'https://www.pinnacle.com', kind: 'sportsbook', regions: ['eu'], isSharp: true },
   // Prediction markets
-  kalshi: { id: 'kalshi', name: 'Kalshi', shortName: 'KAL', color: '#00d4aa', deepLink: 'https://kalshi.com', kind: 'prediction', regions: ['us_ex'] },
-  polymarket: { id: 'polymarket', name: 'Polymarket', shortName: 'PM', color: '#0066ff', deepLink: 'https://polymarket.com', kind: 'prediction', regions: ['us_ex'] },
+  kalshi: { id: 'kalshi', name: 'Kalshi', shortName: 'KAL', color: INK_DIM, deepLink: 'https://kalshi.com', kind: 'prediction', regions: ['us_ex'] },
+  polymarket: { id: 'polymarket', name: 'Polymarket', shortName: 'PM', color: INK_DIM, deepLink: 'https://polymarket.com', kind: 'prediction', regions: ['us_ex'] },
 };
 
-// Gray fallback so an unknown/new book id never crashes the UI.
-const UNKNOWN_VENUE: Venue = {
-  id: 'unknown',
-  name: 'Unknown',
-  shortName: '?',
-  color: '#6b7280',
-  deepLink: '',
-  kind: 'sportsbook',
-  regions: [],
-};
+const ACRONYMS = new Set(['ag', 'eu', 'us', 'uk', 'au', 'ex', 'nl', 'it', 'fr', 'es', 'espn', 'gt']);
+
+/** Turn an Odds API book key into a display name, e.g. betonlineag → "BetOnline AG". */
+export function humanizeBookId(bookId: string): string {
+  const spaced = bookId
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z])ag$/i, '$1 ag')
+    .replace(/([a-z])bet$/i, '$1 bet');
+
+  return spaced
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => {
+      const lower = part.toLowerCase();
+      if (ACRONYMS.has(lower)) return lower.toUpperCase();
+      if (lower.endsWith('online') && lower.length > 6) {
+        const stem = lower.slice(0, -6);
+        return stem.charAt(0).toUpperCase() + stem.slice(1) + 'Online';
+      }
+      if (lower.endsWith('bookie') && lower.length > 6) {
+        const stem = lower.slice(0, -6);
+        return stem.charAt(0).toUpperCase() + stem.slice(1) + 'Bookie';
+      }
+      if (lower === 'hardrock') return 'Hard Rock';
+      if (lower === 'parx') return 'PARX';
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
+function shortNameFromDisplay(name: string): string {
+  const caps = name.replace(/[^A-Z]/g, '');
+  if (caps.length >= 3) return caps.slice(0, 4);
+  if (caps.length === 2) return caps;
+  return name.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+}
+
+function fallbackVenue(bookId: string): Venue {
+  const name = humanizeBookId(bookId);
+  return {
+    id: bookId,
+    name,
+    shortName: shortNameFromDisplay(name),
+    color: INK_DIM,
+    deepLink: '',
+    kind: 'sportsbook',
+    regions: [],
+  };
+}
 
 export function getVenue(bookId: string): Venue {
-  return VENUES[bookId] ?? UNKNOWN_VENUE;
+  const known = VENUES[bookId];
+  if (known) return known;
+  if (bookId.startsWith('unibet')) {
+    const base = VENUES.unibet;
+    if (base) {
+      return { ...base, id: bookId, name: humanizeBookId(bookId), shortName: shortNameFromDisplay(humanizeBookId(bookId)) };
+    }
+  }
+  return fallbackVenue(bookId);
 }
 
 export interface Sportsbook {
@@ -76,15 +138,15 @@ export interface Sportsbook {
 }
 
 export const SPORTSBOOK_INFO: Record<SportsbookId, Sportsbook> = {
-  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: '#1493ff', deepLink: 'https://sportsbook.fanduel.com' },
-  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: '#53d337', deepLink: 'https://sportsbook.draftkings.com' },
-  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: '#c4a932', deepLink: 'https://sports.betmgm.com' },
-  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: '#0a4833', deepLink: 'https://sportsbook.caesars.com' },
-  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: '#1a73e8', deepLink: 'https://ny.betrivers.com' },
-  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: '#000000', deepLink: 'https://sportsbook.fanatics.com' },
-  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: '#e31837', deepLink: 'https://www.ballybet.com' },
-  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: '#027b5b', deepLink: 'https://www.bet365.com' },
-  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: '#ff6b00', deepLink: 'https://thescore.bet' },
+  fanduel: { id: 'fanduel', name: 'FanDuel', shortName: 'FD', color: INK_DIM, deepLink: 'https://sportsbook.fanduel.com' },
+  draftkings: { id: 'draftkings', name: 'DraftKings', shortName: 'DK', color: INK_DIM, deepLink: 'https://sportsbook.draftkings.com' },
+  betmgm: { id: 'betmgm', name: 'BetMGM', shortName: 'MGM', color: INK_DIM, deepLink: 'https://sports.betmgm.com' },
+  caesars: { id: 'caesars', name: 'Caesars', shortName: 'CZR', color: INK_DIM, deepLink: 'https://sportsbook.caesars.com' },
+  betrivers: { id: 'betrivers', name: 'BetRivers', shortName: 'BR', color: INK_DIM, deepLink: 'https://ny.betrivers.com' },
+  fanatics: { id: 'fanatics', name: 'Fanatics', shortName: 'FAN', color: INK_DIM, deepLink: 'https://sportsbook.fanatics.com' },
+  ballybet: { id: 'ballybet', name: 'Bally Bet', shortName: 'BALLY', color: INK_DIM, deepLink: 'https://www.ballybet.com' },
+  bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: INK_DIM, deepLink: 'https://www.bet365.com' },
+  thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: INK_DIM, deepLink: 'https://thescore.bet' },
 };
 
 // Sports
@@ -117,6 +179,19 @@ export const SPORT_INFO: Record<SportKey, Sport> = {
   soccer_epl: { key: 'soccer_epl', name: 'Premier League', shortName: 'EPL' },
   soccer_usa_mls: { key: 'soccer_usa_mls', name: 'MLS', shortName: 'MLS' },
 };
+
+/** Sport badge from event.sportKey. Never defaults to NFL. */
+export function getSport(sportKey: string): Sport {
+  const known = SPORT_INFO[sportKey as SportKey];
+  if (known) return known;
+  const bits = sportKey.split('_').filter(Boolean);
+  const shortName = (bits[bits.length - 1] ?? sportKey).toUpperCase();
+  return {
+    key: sportKey as SportKey,
+    name: sportKey,
+    shortName,
+  };
+}
 
 // Odds types
 export type AmericanOdds = number; // e.g., -110, +150

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useEVOpportunities } from '@/hooks/useOdds';
+import { useOddsStore } from '@/stores/oddsStore';
 import EVOpportunityCard from './EVOpportunityCard';
+import SportSelector from '@/components/odds/SportSelector';
 import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
 import StaleBanner from '@/components/common/StaleBanner';
@@ -13,7 +15,8 @@ const MIN_EV_OPTIONS = [0.5, 1, 2, 3, 5];
 
 export default function EVPage() {
   const [minEV, setMinEV] = useState(1);
-  const { data, isLoading, error, dataUpdatedAt } = useEVOpportunities(minEV);
+  const sport = useOddsStore((s) => s.filter.sport);
+  const { data, isLoading, error, dataUpdatedAt } = useEVOpportunities(minEV, sport);
   const debug = useDebugMode();
 
   return (
@@ -42,7 +45,9 @@ export default function EVPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4">
+        <SportSelector sharpCoverage={data?.sharpCoverage} />
+        <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-400">Min EV%:</span>
           <div className="flex gap-1">
@@ -67,6 +72,7 @@ export default function EVPage() {
             {data.count} opportunities found across {data.scannedEvents} events
           </div>
         )}
+        </div>
       </div>
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
