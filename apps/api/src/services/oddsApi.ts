@@ -358,13 +358,13 @@ function evKey(opp: EVOpportunity): string {
   return `${opp.eventId}|${opp.marketType}|${opp.outcomeName}|${opp.bookId}|${opp.source ?? 'pinnacle'}`;
 }
 
-function collectEV(
+async function collectEV(
   bookEvents: Event[],
   exchangeEvents: Event[],
   minEV: number,
   includeCross: boolean
-): EVOpportunity[] {
-  const fromBooks = findEVOpportunities(bookEvents, { minEV });
+): Promise<EVOpportunity[]> {
+  const fromBooks = await findEVOpportunities(bookEvents, { minEV });
   if (!includeCross) return fromBooks;
   const fromCross = findCrossVenueEVOpportunities(bookEvents, exchangeEvents, { minEV });
   const seen = new Set(fromBooks.map(evKey));
@@ -479,7 +479,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
       ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB, SPORTS.EPL, SPORTS.MLS]
       : [sport as SportKey];
     const mockEvents: Event[] = sportsToScan.flatMap((s) => getMockEvents(s));
-    const opportunities = collectEV(mockEvents, mockEvents, minEV, includeCross);
+    const opportunities = await collectEV(mockEvents, mockEvents, minEV, includeCross);
     return {
       opportunities,
       count: opportunities.length,
@@ -518,7 +518,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
     }
     exchangeEvents = mergeFetchResults(exchangeResults).events;
   }
-  const opportunities = collectEV(merged.events, exchangeEvents, minEV, includeCross);
+  const opportunities = await collectEV(merged.events, exchangeEvents, minEV, includeCross);
   return {
     opportunities,
     count: opportunities.length,

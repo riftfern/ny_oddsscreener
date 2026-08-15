@@ -18,7 +18,7 @@ function makeEvent(overrides: Partial<Event> = {}): Event {
 }
 
 describe('findEVOpportunities', () => {
-  it('flags FanDuel +120 as +EV vs Pinnacle -110/-110 and never lists Pinnacle', () => {
+  it('flags FanDuel +120 as +EV vs Pinnacle -110/-110 and never lists Pinnacle', async () => {
     const event = makeEvent({
       markets: [
         {
@@ -47,7 +47,7 @@ describe('findEVOpportunities', () => {
       ],
     });
 
-    const opps = findEVOpportunities([event], { minEV: 1 });
+    const opps = await findEVOpportunities([event], { minEV: 1 });
 
     // Exactly one opportunity: FanDuel Bills +120.
     expect(opps).toHaveLength(1);
@@ -61,7 +61,7 @@ describe('findEVOpportunities', () => {
     expect(opps.some((o) => o.bookId === 'pinnacle')).toBe(false);
   });
 
-  it('skips a market entirely when either side has no sharp book', () => {
+  it('skips a market entirely when either side has no sharp book', async () => {
     const event = makeEvent({
       markets: [
         {
@@ -85,11 +85,11 @@ describe('findEVOpportunities', () => {
     });
 
     // No sharp book on either side -> market is skipped, nothing flagged.
-    const opps = findEVOpportunities([event], { minEV: 1 });
+    const opps = await findEVOpportunities([event], { minEV: 1 });
     expect(opps).toHaveLength(0);
   });
 
-  it('does not use best retail odds as the fair line', () => {
+  it('does not use best retail odds as the fair line', async () => {
     // FanDuel is the best retail price but there is no sharp book -> skipped.
     const event = makeEvent({
       markets: [
@@ -113,7 +113,7 @@ describe('findEVOpportunities', () => {
       ],
     });
 
-    const opps = findEVOpportunities([event], { minEV: 1 });
+    const opps = await findEVOpportunities([event], { minEV: 1 });
     expect(opps).toHaveLength(0);
   });
 });

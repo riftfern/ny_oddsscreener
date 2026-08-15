@@ -6,6 +6,8 @@ import {
   pickSharpOdds,
   SHARP_BOOK_PRIORITY,
 } from '@ny-sharp-edge/shared';
+import { getOddsPapiSharpOdds, type SharpOutcomeOdds } from './oddsPapi.js';
+import { normalizeTitle } from './eventMatch.js';
 
 interface EVFinderOptions {
   minEV?: number; // Minimum EV% to include (default 1%)
@@ -15,19 +17,46 @@ interface EVFinderOptions {
 
 type MarketOutcome = Event['markets'][0]['outcomes'][0];
 
+function normalizeName(value: string): string {
+  return normalizeTitle(value);
+}
+
+function attachFallbackOdds(
+  outcomes: MarketOutcome[],
+  fallback: SharpOutcomeOdds[]
+): MarketOutcome[] {
+  if (fallback.length === 0) return outcomes;
+
+  return outcomes.map((outcome, index) => {
+    const byName = fallback.find((f) => normalizeName(f.name) === normalizeName(outcome.name));
+    const byPosition = fallback[index];
+    const chosen = byName ?? (fallback.length === 2 ? byPosition : undefined);
+    if (!chosen || chosen.bookOdds.length === 0) return outcome;
+
+    const pinnacle = chosen.bookOdds[0];
+    if (outcome.bookOdds.some((bo) => bo.bookId === 'pinnacle')) return outcome;
+
+    return {
+      ...outcome,
+      bookOdds: [...outcome.bookOdds, pinnacle],
+    };
+  });
+}
+
 /**
  * Find +EV opportunities from a list of events.
  *
  * Strategy: the fair line comes from a SHARP source (Pinnacle no-vig), never
  * from best retail odds. For each 2-way market we pick the sharp book on each
- * side; if either side lacks a sharp book we skip the market entirely rather
- * than silently treating a soft book (e.g. FanDuel) as the fair line. Then we
- * compare every NON-sharp book's price to that fair probability.
+ * side; if either side lacks a sharp book we try the OddsPapi fallback when it
+ * is configured. If no sharp line is available we skip the market entirely
+ * rather than silently treating a soft book (e.g. FanDuel) as the fair line.
+ * Then we compare every NON-sharp book's price to that fair probability.
  */
-export function findEVOpportunities(
+export async function findEVOpportunities(
   events: Event[],
   options: EVFinderOptions = {}
-): EVOpportunity[] {
+): Promise<EVOpportunity[]> {
   const { minEV = 1, bankroll = 1000, kellyFraction = 0.25 } = options;
   const opportunities: EVOpportunity[] = [];
 
@@ -36,11 +65,23 @@ export function findEVOpportunities(
       // Need exactly 2 outcomes for fair odds calculation
       if (market.outcomes.length !== 2) continue;
 
-      const [outcome1, outcome2] = market.outcomes;
+      let [outcome1, outcome2] = market.outcomes;
 
       // Fair line = sharp book no-vig on each side.
-      const sharp1 = pickSharpOdds(outcome1.bookOdds);
-      const sharp2 = pickSharpOdds(outcome2.bookOdds);
+      let sharp1 = pickSharpOdds(outcome1.bookOdds);
+      let sharp2 = pickSharpOdds(outcome2.bookOdds);
+
+      // OddsPapi fallback: fetch Pinnacle for this event/market when configured.
+      if (!sharp1 || !sharp2) {
+        const fallback = await getOddsPapiSharpOdds(event, market.type);
+        if (fallback.length > 0) {
+          const enriched = attachFallbackOdds(market.outcomes, fallback);
+          [outcome1, outcome2] = enriched;
+          sharp1 = pickSharpOdds(outcome1.bookOdds);
+          sharp2 = pickSharpOdds(outcome2.bookOdds);
+        }
+      }
+
       if (!sharp1 || !sharp2) continue; // skip: no sharp fair line available
 
       const fair = calculateNoVigOdds(sharp1.odds, sharp2.odds);
