@@ -1,6 +1,6 @@
 import { Router, type Router as RouterType } from 'express';
 import type { SportKey } from '@ny-sharp-edge/shared';
-import { SPORTS } from '@ny-sharp-edge/shared';
+import { SPORTS, isKnownSport } from '@ny-sharp-edge/shared';
 import { fetchOddsResponse, fetchExchangeOddsResponse } from '../services/oddsApi.js';
 import { requirePlan } from '../middleware/plan.js';
 
@@ -12,11 +12,10 @@ const router: RouterType = Router();
 router.get('/', requirePlan('free'), async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
 
-  const validSports = Object.values(SPORTS);
-  if (!validSports.includes(sport)) {
+  if (!isKnownSport(sport)) {
     res.status(400).json({
       error: 'Invalid sport',
-      validSports,
+      validSports: Object.values(SPORTS),
     });
     return;
   }
@@ -41,11 +40,10 @@ router.get('/', requirePlan('free'), async (req, res) => {
 router.get('/exchanges', requirePlan('pro'), async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
 
-  const validSports = Object.values(SPORTS);
-  if (!validSports.includes(sport)) {
+  if (!isKnownSport(sport)) {
     res.status(400).json({
       error: 'Invalid sport',
-      validSports,
+      validSports: Object.values(SPORTS),
     });
     return;
   }

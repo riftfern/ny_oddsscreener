@@ -1,5 +1,5 @@
 import type { Event, SportKey, BookOdds, MarketOutcome, Market, EVOpportunity, ArbitrageOpportunity, RegionKey } from '@ny-sharp-edge/shared';
-import { SPORTS, getMockEvents, pickSharpOdds } from '@ny-sharp-edge/shared';
+import { SPORTS, expandSportKeys, getMockEvents, pickSharpOdds } from '@ny-sharp-edge/shared';
 import { findEVOpportunities } from './evFinder.js';
 import { findArbitrageOpportunities } from './arbFinder.js';
 import { findCrossVenueEVOpportunities } from './crossVenueEv.js';
@@ -283,7 +283,7 @@ async function tryStaleFallback(cacheKey: string): Promise<FetchOddsResult | und
   };
 }
 
-export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {}): Promise<FetchOddsResult> {
+export async function fetchOdds(sport: string, options: FetchOddsOptions = {}): Promise<FetchOddsResult> {
   if (useMockData()) {
     console.log(`[mock] Returning mock events for ${sport}`);
     return {
@@ -343,7 +343,7 @@ export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {})
     const data: OddsApiEvent[] = await response.json();
     const events = data.map(transformToEvent);
 
-    appendOddsSnapshot(sport, regions, events);
+    appendOddsSnapshot(sport as SportKey, regions, events);
 
     if (useCache) {
       oddsCache.set(cacheKey, events);
@@ -388,6 +388,36 @@ function mergeFetchResults(results: FetchOddsResult[]): FetchOddsResult {
   return { events, cachedAt, stale };
 }
 
+/** tennis_majors → in-season slam keys; other sports pass through. */
+export async function fetchOddsGroup(sport: string, options: FetchOddsOptions = {}): Promise<FetchOddsResult> {
+  const keys = expandSportKeys(sport);
+  if (keys.length === 1) return fetchOdds(keys[0], options);
+
+  const results: FetchOddsResult[] = [];
+  for (const key of keys) {
+    try {
+      results.push(await fetchOdds(key, options));
+    } catch (err) {
+      console.error(`Failed to fetch ${key}:`, err);
+    }
+  }
+  if (results.length === 0) {
+    return { events: [], cachedAt: new Date().toISOString() };
+  }
+  return mergeFetchResults(results);
+}
+
+async function maybeAttachNative(sport: string, events: Event[]): Promise<Event[]> {
+  if (useMockData() || !nativeExchangesEnabled()) return events;
+  try {
+    const enriched = await enrichEventsWithNativeExchanges(sport as SportKey, events);
+    return enriched.events;
+  } catch (err) {
+    console.error('[odds] native overlay failed:', err);
+    return events;
+  }
+}
+
 function nativeExchangesEnabled(): boolean {
   return process.env.NATIVE_EXCHANGES !== 'false';
 }
@@ -413,11 +443,11 @@ export async function fetchExchangeOdds(
     }
   }
 
-  const usEx = await fetchOdds(sport, { regions: exchangeRegions() });
+  const usEx = await fetchOddsGroup(sport, { regions: exchangeRegions() });
   if (useMockData() || !nativeExchangesEnabled()) return usEx;
 
   try {
-    const books = await fetchOdds(sport);
+    const books = await fetchOddsGroup(sport);
     const enriched = await enrichEventsWithNativeExchanges(sport, books.events);
     const sportUnmatched = enriched.unmatched.filter((event) => event.sportKey === sport);
     return {
@@ -468,7 +498,9 @@ export async function fetchOddsResponse(
     }
   }
 
-  const result = await fetchOdds(sport);
+  const fetched = await fetchOddsGroup(sport);
+  const events = await maybeAttachNative(sport, fetched.events);
+  const result = { ...fetched, events };
   if (!useMockData()) {
     publishLiveSnapshot(delayKey, result.events);
   }
@@ -502,9 +534,9 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
 
   if (useMockData()) {
     console.log('[mock] Running +EV finder on mock events (Pinnacle fair line)');
-    const sportsToScan: SportKey[] = sport === 'all'
+    const sportsToScan = sport === 'all'
       ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB, SPORTS.EPL, SPORTS.MLS]
-      : [sport as SportKey];
+      : expandSportKeys(sport);
     const mockEvents: Event[] = sportsToScan.flatMap((s) => getMockEvents(s));
     const opportunities = await collectEV(mockEvents, mockEvents, minEV, includeCross);
     return {
@@ -518,9 +550,9 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
     };
   }
 
-  const sportsToScan: SportKey[] = sport === 'all'
+  const sportsToScan = sport === 'all'
     ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
-    : [sport as SportKey];
+    : expandSportKeys(sport);
 
   const results: FetchOddsResult[] = [];
   for (const s of sportsToScan) {
@@ -538,7 +570,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
     const exchangeResults: FetchOddsResult[] = [];
     for (const s of sportsToScan) {
       try {
-        exchangeResults.push(await fetchExchangeOdds(s));
+        exchangeResults.push(await fetchExchangeOdds(s as SportKey));
       } catch (err) {
         console.error(`Failed to fetch exchanges for ${s}:`, err);
       }
@@ -564,9 +596,9 @@ export async function fetchArbitrageResponse(options: { sport?: string; minProfi
 
   if (useMockData()) {
     console.log('[mock] Running arbitrage finder on mock events');
-    const sportsToScan: SportKey[] = sport === 'all'
+    const sportsToScan = sport === 'all'
       ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB, SPORTS.EPL, SPORTS.MLS]
-      : [sport as SportKey];
+      : expandSportKeys(sport);
     const mockEvents: Event[] = sportsToScan.flatMap((s) => getMockEvents(s));
     const opportunities = findArbitrageOpportunities(mockEvents, { minProfit, totalStake });
     return {
@@ -580,9 +612,9 @@ export async function fetchArbitrageResponse(options: { sport?: string; minProfi
     };
   }
 
-  const sportsToScan: SportKey[] = sport === 'all'
+  const sportsToScan = sport === 'all'
     ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
-    : [sport as SportKey];
+    : expandSportKeys(sport);
 
   const results: FetchOddsResult[] = [];
   for (const s of sportsToScan) {

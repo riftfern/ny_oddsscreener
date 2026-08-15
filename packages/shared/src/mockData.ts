@@ -299,6 +299,29 @@ const MLB_EVENTS: Event[] = [
   },
 ];
 
+const TENNIS_EVENTS: Event[] = [
+  {
+    id: 'tennis-uso-1',
+    sportKey: 'tennis_atp_us_open' as SportKey,
+    homeTeam: 'Jannik Sinner',
+    awayTeam: 'Carlos Alcaraz',
+    commenceTime: new Date(Date.now() + 2 * 3600000).toISOString(),
+    markets: [
+      { type: 'h2h', outcomes: createOutcomes('Carlos Alcaraz', 'Jannik Sinner', 115, -135, undefined, undefined, true) },
+    ],
+  },
+  {
+    id: 'tennis-uso-2',
+    sportKey: 'tennis_wta_us_open' as SportKey,
+    homeTeam: 'Iga Swiatek',
+    awayTeam: 'Coco Gauff',
+    commenceTime: new Date(Date.now() + 5 * 3600000).toISOString(),
+    markets: [
+      { type: 'h2h', outcomes: createOutcomes('Coco Gauff', 'Iga Swiatek', 150, -175, undefined, undefined, true) },
+    ],
+  },
+];
+
 const EVENTS_BY_SPORT: Record<SportKey, Event[]> = {
   [SPORTS.NFL]: NFL_EVENTS,
   [SPORTS.NBA]: NBA_EVENTS,
@@ -308,10 +331,16 @@ const EVENTS_BY_SPORT: Record<SportKey, Event[]> = {
   [SPORTS.NCAAB]: [],
   [SPORTS.EPL]: [],
   [SPORTS.MLS]: [],
+  [SPORTS.TENNIS]: TENNIS_EVENTS,
 };
 
-export function getMockEvents(sport: SportKey): Event[] {
-  const events = EVENTS_BY_SPORT[sport] || [];
+export function getMockEvents(sport: string): Event[] {
+  const events =
+    sport === SPORTS.TENNIS
+      ? TENNIS_EVENTS
+      : sport.startsWith('tennis_')
+        ? TENNIS_EVENTS.filter((event) => event.sportKey === sport)
+        : EVENTS_BY_SPORT[sport as SportKey] || [];
   return events.map((event) => ({
     ...event,
     markets: event.markets.map((market) => ({

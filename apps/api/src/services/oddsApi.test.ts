@@ -220,6 +220,13 @@ describe('fetchEVResponse sport filter', () => {
     expect(data.opportunities.every((o) => o.event.sportKey === 'americanfootball_nfl')).toBe(true);
     expect(data.opportunities.some((o) => /canucks|oilers/i.test(`${o.event.awayTeam} ${o.event.homeTeam}`))).toBe(false);
   });
+
+  it('scans tennis majors without pulling NFL', async () => {
+    process.env.USE_MOCK_DATA = 'true';
+    const data = await fetchEVResponse({ sport: 'tennis_majors', minEV: 0.5 });
+    expect(data.opportunities.every((o) => String(o.event.sportKey).startsWith('tennis_'))).toBe(true);
+    expect(data.opportunities.some((o) => o.event.sportKey === 'americanfootball_nfl')).toBe(false);
+  });
 });
 
 async function getFirstFetchedUrl(promise: Promise<unknown>): Promise<string> {

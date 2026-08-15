@@ -1,3 +1,5 @@
+import { isTennisGroupKey, isTennisMajorKey, tennisMajorInfo } from './tennis.js';
+
 // NY Legal Sportsbooks
 export const SPORTSBOOKS = {
   FANDUEL: 'fanduel',
@@ -159,6 +161,7 @@ export const SPORTS = {
   NCAAB: 'basketball_ncaab',
   EPL: 'soccer_epl',
   MLS: 'soccer_usa_mls',
+  TENNIS: 'tennis_majors',
 } as const;
 
 export type SportKey = (typeof SPORTS)[keyof typeof SPORTS];
@@ -178,12 +181,17 @@ export const SPORT_INFO: Record<SportKey, Sport> = {
   basketball_ncaab: { key: 'basketball_ncaab', name: 'College Basketball', shortName: 'NCAAB' },
   soccer_epl: { key: 'soccer_epl', name: 'Premier League', shortName: 'EPL' },
   soccer_usa_mls: { key: 'soccer_usa_mls', name: 'MLS', shortName: 'MLS' },
+  tennis_majors: { key: 'tennis_majors', name: 'Tennis', shortName: 'TENNIS' },
 };
 
 /** Sport badge from event.sportKey. Never defaults to NFL. */
 export function getSport(sportKey: string): Sport {
   const known = SPORT_INFO[sportKey as SportKey];
   if (known) return known;
+  const slam = tennisMajorInfo(sportKey);
+  if (slam) {
+    return { key: sportKey as SportKey, name: slam.name, shortName: slam.shortName };
+  }
   const bits = sportKey.split('_').filter(Boolean);
   const shortName = (bits[bits.length - 1] ?? sportKey).toUpperCase();
   return {
@@ -191,6 +199,12 @@ export function getSport(sportKey: string): Sport {
     name: sportKey,
     shortName,
   };
+}
+
+export function isKnownSport(sport: string): boolean {
+  if (sport === 'all') return true;
+  if (isTennisGroupKey(sport) || isTennisMajorKey(sport)) return true;
+  return (Object.values(SPORTS) as string[]).includes(sport);
 }
 
 // Odds types
@@ -291,3 +305,6 @@ export interface BetSelection {
   stake: number;
   addedAt: string;
 }
+
+export * from './tennis.js';
+export * from './shops.js';
