@@ -44,6 +44,7 @@ export interface OddsResponse {
   lastUpdated: string;
   cachedAt: string;
   stale?: boolean;
+  delayed?: boolean;
   remainingCredits?: number;
 }
 
@@ -96,6 +97,10 @@ export const api = {
 
   health: async (): Promise<{ status: string }> => {
     return fetchJson('/health');
+  },
+
+  getSettings: async (): Promise<{ telegram: { configured: boolean; mockDisabled: boolean } }> => {
+    return fetchJson('/settings');
   },
 
   createCheckoutSession: async (plan: 'edge' | 'pro'): Promise<{ url?: string; error?: string }> => {

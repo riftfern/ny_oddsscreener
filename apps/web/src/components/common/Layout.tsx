@@ -3,10 +3,11 @@ import { Betslip, BetslipToggle } from '../betslip';
 import { usePlan } from '@/components/auth/AuthProvider';
 
 const navItems = [
-  { path: '/app', label: 'Odds' },
+  { path: '/app', label: 'Odds', end: true },
   { path: '/app/ev', label: '+EV Finder' },
   { path: '/app/arb', label: 'Arbitrage' },
   { path: '/app/exchanges', label: 'Exchanges' },
+  { path: '/app/settings', label: 'Settings' },
 ];
 
 const PLAN_BADGE_COLORS: Record<ReturnType<typeof usePlan>['plan'], string> = {
@@ -42,6 +43,7 @@ export default function Layout() {
                 <NavLink
                   key={item.path}
                   to={item.path}
+                  end={'end' in item ? item.end : false}
                   className={({ isActive }) =>
                     `px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive

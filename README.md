@@ -2,8 +2,9 @@
 
 A sportsbook odds screener that finds +EV lines against a sharp fair line.
 
+- **Free** — 15-minute delayed US odds (funnel).
 - **Edge** — $19/mo: live US books, +EV vs Pinnacle, 6 sports.
-- **Pro** — $49/mo: everything in Edge plus arbitrage and Kalshi/Polymarket exchange lines.
+- **Pro** — $49/mo: everything in Edge plus arbitrage and Kalshi/Polymarket (Odds API `us_ex` plus native Gamma / Kalshi adapters).
 
 Built with React, Vite, Express, TypeScript, TanStack Query, Zustand, and Tailwind CSS.
 
@@ -12,7 +13,8 @@ Built with React, Vite, Express, TypeScript, TanStack Query, Zustand, and Tailwi
 - Compares moneyline, spread, and total odds across US sportsbooks.
 - Computes +EV opportunities against a Pinnacle no-vig fair line — not against the best soft-book line.
 - Scans for arbitrage opportunities across books.
-- Shows Kalshi and Polymarket lines on the Pro exchange screen.
+- Shows Kalshi and Polymarket lines on the Pro exchange screen, matched to sportsbook events by team names (manual map table when a title is ambiguous).
+- Pro +EV can include cross-venue edges (book vs exchange) when the same event matches.
 
 ## Run locally (mock mode)
 

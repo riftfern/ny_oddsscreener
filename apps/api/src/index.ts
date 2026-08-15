@@ -7,6 +7,7 @@ import oddsRouter from './routes/odds.js';
 import evRouter from './routes/ev.js';
 import arbitrageRouter from './routes/arbitrage.js';
 import billingRouter from './routes/billing.js';
+import settingsRouter from './routes/settings.js';
 import { requirePlan } from './middleware/plan.js';
 import { telegramAlertPoller } from './services/telegramAlerts.js';
 
@@ -44,6 +45,7 @@ app.use('/api/odds', oddsRouter);
 app.use('/api/ev', requirePlan('edge'), evRouter);
 app.use('/api/arbitrage', requirePlan('pro'), arbitrageRouter);
 app.use('/api/billing', billingRouter);
+app.use('/api/settings', settingsRouter);
 
 // 404 handler
 app.use((_req, res) => {
