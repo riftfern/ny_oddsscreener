@@ -8,6 +8,7 @@ import evRouter from './routes/ev.js';
 import arbitrageRouter from './routes/arbitrage.js';
 import billingRouter from './routes/billing.js';
 import { requirePlan } from './middleware/plan.js';
+import { telegramAlertPoller } from './services/telegramAlerts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -68,4 +69,7 @@ app.listen(PORT, () => {
 
   Note: Using mock data by default. Add ?live=true for real API data.
   `);
+
+  // Start Pro alert poller after the HTTP server is listening.
+  telegramAlertPoller.start();
 });
