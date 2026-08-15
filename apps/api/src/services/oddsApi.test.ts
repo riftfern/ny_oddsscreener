@@ -134,6 +134,7 @@ describe('oddsApi fetchExchangeOdds', () => {
     process.env.THE_ODDS_API_KEY = 'test-key';
     process.env.USE_MOCK_DATA = 'false';
     process.env.ODDS_EXCHANGE_REGIONS = 'us_ex';
+    process.env.NATIVE_EXCHANGES = 'false';
   });
 
   afterEach(() => {

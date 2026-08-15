@@ -2,7 +2,10 @@ import type { Event, SportKey, BookOdds, MarketOutcome, Market, EVOpportunity, A
 import { SPORTS, getMockEvents } from '@ny-sharp-edge/shared';
 import { findEVOpportunities } from './evFinder.js';
 import { findArbitrageOpportunities } from './arbFinder.js';
+import { findCrossVenueEVOpportunities } from './crossVenueEv.js';
 import { OddsCache, defaultTtlMs } from './oddsCache.js';
+import { enrichEventsWithNativeExchanges } from './nativeExchanges.js';
+import { freeDelayMs, getDelayedSnapshot, publishLiveSnapshot } from './delayedOdds.js';
 
 const BASE_URL = 'https://api.the-odds-api.com/v4';
 
@@ -16,6 +19,7 @@ export interface OddsResponse {
   lastUpdated: string;
   cachedAt: string;
   stale?: boolean;
+  delayed?: boolean;
   remainingCredits?: number;
 }
 
@@ -267,7 +271,11 @@ export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {})
     const cached = oddsCache.get(cacheKey);
     if (cached) {
       console.log(`[cache] hit ${cacheKey}`);
-      return { events: cached, cachedAt: new Date().toISOString() };
+      const meta = oddsCache.peekLast(cacheKey);
+      return {
+        events: cached,
+        cachedAt: new Date(meta?.cachedAt ?? Date.now()).toISOString(),
+      };
     }
   }
 
@@ -312,6 +320,29 @@ export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {})
   }
 }
 
+function evKey(opp: EVOpportunity): string {
+  return `${opp.eventId}|${opp.marketType}|${opp.outcomeName}|${opp.bookId}|${opp.source ?? 'pinnacle'}`;
+}
+
+function collectEV(
+  bookEvents: Event[],
+  exchangeEvents: Event[],
+  minEV: number,
+  includeCross: boolean
+): EVOpportunity[] {
+  const fromBooks = findEVOpportunities(bookEvents, { minEV });
+  if (!includeCross) return fromBooks;
+  const fromCross = findCrossVenueEVOpportunities(bookEvents, exchangeEvents, { minEV });
+  const seen = new Set(fromBooks.map(evKey));
+  const extra = fromCross.filter((opp) => {
+    const key = evKey(opp);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return [...fromBooks, ...extra].sort((a, b) => b.evPercentage - a.evPercentage);
+}
+
 function mergeFetchResults(results: FetchOddsResult[]): FetchOddsResult {
   const events = results.flatMap((r) => r.events);
   const stale = results.some((r) => r.stale);
@@ -320,8 +351,26 @@ function mergeFetchResults(results: FetchOddsResult[]): FetchOddsResult {
   return { events, cachedAt, stale };
 }
 
+function nativeExchangesEnabled(): boolean {
+  return process.env.NATIVE_EXCHANGES !== 'false';
+}
+
 export async function fetchExchangeOdds(sport: SportKey): Promise<FetchOddsResult> {
-  return fetchOdds(sport, { regions: exchangeRegions() });
+  const usEx = await fetchOdds(sport, { regions: exchangeRegions() });
+  if (useMockData() || !nativeExchangesEnabled()) return usEx;
+
+  try {
+    const books = await fetchOdds(sport);
+    const withNative = await enrichEventsWithNativeExchanges(sport, books.events);
+    return {
+      events: withNative,
+      cachedAt: usEx.cachedAt,
+      stale: usEx.stale || books.stale,
+    };
+  } catch (err) {
+    console.error('[exchanges] native enrich failed, serving us_ex only:', err);
+    return usEx;
+  }
 }
 
 export async function fetchExchangeOddsResponse(sport: SportKey): Promise<OddsResponse> {
@@ -335,8 +384,45 @@ export async function fetchExchangeOddsResponse(sport: SportKey): Promise<OddsRe
   };
 }
 
-export async function fetchOddsResponse(sport: SportKey): Promise<OddsResponse> {
+export async function fetchOddsResponse(
+  sport: SportKey,
+  options: { delayed?: boolean } = {}
+): Promise<OddsResponse> {
+  const delayKey = `live:${sport}`;
+
+  if (options.delayed && !useMockData()) {
+    const existing = getDelayedSnapshot(delayKey);
+    const frozenAt = existing ? Date.parse(existing.cachedAt) : 0;
+    const freshEnough = existing && Date.now() - frozenAt < freeDelayMs();
+    if (freshEnough && existing) {
+      return {
+        events: existing.events,
+        lastUpdated: new Date().toISOString(),
+        cachedAt: existing.cachedAt,
+        delayed: true,
+        remainingCredits: getLastRemainingCredits(),
+      };
+    }
+  }
+
   const result = await fetchOdds(sport);
+  if (!useMockData()) {
+    publishLiveSnapshot(delayKey, result.events);
+  }
+
+  if (options.delayed) {
+    const delayed = getDelayedSnapshot(delayKey);
+    if (delayed) {
+      return {
+        events: delayed.events,
+        lastUpdated: new Date().toISOString(),
+        cachedAt: delayed.cachedAt,
+        delayed: true,
+        remainingCredits: getLastRemainingCredits(),
+      };
+    }
+  }
+
   return {
     events: result.events,
     lastUpdated: new Date().toISOString(),
@@ -346,8 +432,8 @@ export async function fetchOddsResponse(sport: SportKey): Promise<OddsResponse> 
   };
 }
 
-export async function fetchEVResponse(options: { sport?: string; minEV?: number }): Promise<EVResponse> {
-  const { sport = 'all', minEV = 1 } = options;
+export async function fetchEVResponse(options: { sport?: string; minEV?: number; includeCross?: boolean }): Promise<EVResponse> {
+  const { sport = 'all', minEV = 1, includeCross = false } = options;
 
   if (useMockData()) {
     console.log('[mock] Running +EV finder on mock events (Pinnacle fair line)');
@@ -355,7 +441,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number 
       ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB, SPORTS.EPL, SPORTS.MLS]
       : [sport as SportKey];
     const mockEvents: Event[] = sportsToScan.flatMap((s) => getMockEvents(s));
-    const opportunities = findEVOpportunities(mockEvents, { minEV });
+    const opportunities = collectEV(mockEvents, mockEvents, minEV, includeCross);
     return {
       opportunities,
       count: opportunities.length,
@@ -381,7 +467,19 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number 
   }
 
   const merged = mergeFetchResults(results);
-  const opportunities = findEVOpportunities(merged.events, { minEV });
+  let exchangeEvents: Event[] = merged.events;
+  if (includeCross) {
+    const exchangeResults: FetchOddsResult[] = [];
+    for (const s of sportsToScan) {
+      try {
+        exchangeResults.push(await fetchExchangeOdds(s));
+      } catch (err) {
+        console.error(`Failed to fetch exchanges for ${s}:`, err);
+      }
+    }
+    exchangeEvents = mergeFetchResults(exchangeResults).events;
+  }
+  const opportunities = collectEV(merged.events, exchangeEvents, minEV, includeCross);
   return {
     opportunities,
     count: opportunities.length,
