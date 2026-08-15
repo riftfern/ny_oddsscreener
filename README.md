@@ -52,7 +52,18 @@ This forces mock data so you can record a Loom without burning credits. Open `/`
 
 ## Configure Clerk and Stripe
 
-Copy the example env files:
+This repo is linked to Clerk application `app_3HxkCgsPpRHZBlZbSYyN0nsIneS`.
+Dev keys live in gitignored `apps/web/.env` (`VITE_CLERK_PUBLISHABLE_KEY`) and
+`apps/api/.env` (`CLERK_SECRET_KEY`). Refresh them with:
+
+```bash
+clerk env pull --app app_3HxkCgsPpRHZBlZbSYyN0nsIneS --file .env.local
+```
+
+Sign in / Sign up / the user button show when the publishable key is set.
+`REQUIRE_AUTH` stays **false** until you want `/app` locked to signed-in users.
+
+Copy the example env files if you are on a new machine:
 
 ```bash
 cp apps/api/.env.example apps/api/.env

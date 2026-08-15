@@ -1,5 +1,6 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { usePlan } from '@/components/auth/AuthProvider';
+import AuthControls from '@/components/auth/AuthControls';
 
 const navItems = [
   { path: '/app', label: 'Odds', end: true },
@@ -29,24 +30,27 @@ export default function Layout() {
             )}
           </div>
 
-          <nav className="flex items-stretch h-full gap-1 overflow-x-auto">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={'end' in item ? item.end : false}
-                className={({ isActive }) =>
-                  `flex items-center px-3 text-[11px] uppercase tracking-[0.18em] border-b-2 ${
-                    isActive
-                      ? 'border-moss text-ink'
-                      : 'border-transparent text-ink-dim hover:text-ink'
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+          <div className="flex items-center gap-4 min-w-0">
+            <nav className="flex items-stretch h-12 gap-1 overflow-x-auto">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={'end' in item ? item.end : false}
+                  className={({ isActive }) =>
+                    `flex items-center px-3 text-[11px] uppercase tracking-[0.18em] border-b-2 ${
+                      isActive
+                        ? 'border-moss text-ink'
+                        : 'border-transparent text-ink-dim hover:text-ink'
+                    }`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+            <AuthControls compact />
+          </div>
         </div>
       </header>
 

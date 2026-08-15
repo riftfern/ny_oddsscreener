@@ -4,6 +4,7 @@ import { SPORTS } from '@ny-sharp-edge/shared';
 import OddsGrid from '@/components/odds/OddsGrid';
 import { useOdds } from '@/hooks/useOdds';
 import { useCheckout } from '@/hooks/useCheckout';
+import AuthControls from '@/components/auth/AuthControls';
 
 const BULLETS = [
   '+EV vs Pinnacle',
@@ -42,14 +43,7 @@ export default function LandingPage() {
             LINEEDGE
           </Link>
           <div className="flex items-center gap-4">
-            {requireAuth && (
-              <Link
-                to="/app"
-                className="text-[11px] uppercase tracking-[0.18em] text-ink-dim hover:text-ink"
-              >
-                Sign in
-              </Link>
-            )}
+            <AuthControls />
             <Link
               to="/app"
               className="text-[11px] uppercase tracking-[0.18em] bg-moss hover:bg-moss-2 text-ink px-4 py-2"

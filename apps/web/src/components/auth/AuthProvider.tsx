@@ -33,7 +33,10 @@ function isValidPlan(value: unknown): value is Plan {
 function ClerkPlanResolver({ children }: { children: ReactNode }) {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
-  const plan = isValidPlan(user?.publicMetadata?.plan) ? user.publicMetadata.plan : 'free';
+  const fromClerk = isValidPlan(user?.publicMetadata?.plan) ? user.publicMetadata.plan : undefined;
+  // Until REQUIRE_AUTH is on, keep DEV_PLAN so the board stays usable while Jack
+  // creates the first Clerk account. Signed-in metadata.plan still wins.
+  const plan = fromClerk ?? (requireAuth ? 'free' : devPlan);
 
   useEffect(() => {
     if (getToken) {
@@ -69,7 +72,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      appearance={{
+        variables: {
+          colorPrimary: '#2f5d3a',
+          colorBackground: '#121411',
+          colorText: '#e6e4dc',
+          colorInputBackground: '#1a1d19',
+          colorInputText: '#e6e4dc',
+          borderRadius: '0',
+          fontFamily: '"Archivo Narrow", sans-serif',
+        },
+      }}
+    >
       <ClerkPlanResolver>{children}</ClerkPlanResolver>
     </ClerkProvider>
   );
