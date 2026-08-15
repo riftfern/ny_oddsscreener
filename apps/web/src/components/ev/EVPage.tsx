@@ -49,9 +49,9 @@ export default function EVPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-bold text-ink tracking-tight text-2xl">+EV</h1>
+          <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Edges</h1>
           <p className="text-ink-dim font-mono text-[13px] mt-1">
-            Versus the Pinnacle no-vig fair line
+            Books paying more than the Pinnacle number
           </p>
         </div>
 
@@ -135,7 +135,10 @@ export default function EVPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-line">
-                {['Sport', 'Event', 'Mkt', 'Pick', 'Fair', 'Best book', 'EV%', 'Kelly', 'Open', ''].map((h) => (
+                {(debug
+                  ? ['Sport', 'Event', 'Mkt', 'Pick', 'Fair', 'Best book', 'EV%', 'Kelly', 'Open', '']
+                  : ['Sport', 'Event', 'Mkt', 'Pick', 'Fair', 'Best book', 'EV%', 'Open', '']
+                ).map((h) => (
                   <th key={h} className="px-3 py-2 label whitespace-nowrap">
                     {h}
                   </th>
@@ -144,7 +147,7 @@ export default function EVPage() {
             </thead>
             <tbody>
               {groups.map((group) => (
-                <EVRow key={group.key} group={group} />
+                <EVRow key={group.key} group={group} showKelly={debug} />
               ))}
             </tbody>
           </table>
@@ -154,10 +157,9 @@ export default function EVPage() {
       <div className="border border-line bg-bg-2 p-4">
         <h3 className="label mb-2">How it works</h3>
         <ul className="font-mono text-[12px] text-ink-dim space-y-1">
-          <li>Fair odds are calculated by removing the vig from the sharpest available lines</li>
-          <li>+EV% shows expected profit per $100 wagered over the long run</li>
-          <li>Kelly stake is calculated at 1/4 Kelly for a $1,000 bankroll</li>
-          <li>Higher EV% = larger edge, but opportunities may be limited or move quickly</li>
+          <li>Fair is the Pinnacle number with the juice taken out</li>
+          <li>EV% is how much better the shop is paying than that number</li>
+          <li>Open the book and place it yourself — we do not take bets</li>
         </ul>
       </div>
 
@@ -172,7 +174,7 @@ export default function EVPage() {
   );
 }
 
-function EVRow({ group }: { group: GroupedEV }) {
+function EVRow({ group, showKelly }: { group: GroupedEV; showKelly: boolean }) {
   const { best, others, line } = group;
   const sport = getSport(best.event.sportKey);
   const book = getVenue(best.bookId);
@@ -205,11 +207,13 @@ function EVRow({ group }: { group: GroupedEV }) {
       <td className="px-3 py-2 font-mono text-sm text-lichen tabular-nums whitespace-nowrap">
         +{best.evPercentage.toFixed(1)}%
       </td>
-      <td className="px-3 py-2 font-mono text-sm text-ink tabular-nums">
-        {best.kellySuggestion && best.kellySuggestion > 0
-          ? `$${best.kellySuggestion.toFixed(0)}`
-          : '—'}
-      </td>
+      {showKelly && (
+        <td className="px-3 py-2 font-mono text-sm text-ink tabular-nums">
+          {best.kellySuggestion && best.kellySuggestion > 0
+            ? `$${best.kellySuggestion.toFixed(0)}`
+            : '—'}
+        </td>
+      )}
       <td className="px-3 py-2 whitespace-nowrap">
         {book.deepLink ? (
           <a

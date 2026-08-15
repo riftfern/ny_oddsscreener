@@ -14,7 +14,7 @@ interface OddsStore {
 const defaultFilter: OddsFilter = {
   sport: SPORTS.NFL,
   date: 'today',
-  marketType: 'all',
+  marketType: 'h2h',
   // Include Pinnacle so the fair-line column is visible by default.
   books: [...Object.values(SPORTSBOOKS), 'pinnacle'],
 };

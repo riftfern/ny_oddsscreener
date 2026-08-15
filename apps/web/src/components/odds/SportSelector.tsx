@@ -9,6 +9,7 @@ const sports: SportKey[] = [
   'icehockey_nhl',
   'soccer_epl',
   'soccer_usa_mls',
+  'tennis_majors',
 ];
 
 interface SportSelectorProps {

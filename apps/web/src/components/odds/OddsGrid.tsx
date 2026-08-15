@@ -1,7 +1,6 @@
 import type { Event, MarketType, BookOdds } from '@ny-sharp-edge/shared';
 import { getVenue, formatAmerican } from '@ny-sharp-edge/shared';
 import { useOddsStore } from '@/stores/oddsStore';
-import { useBetslipStore } from '@/stores/betslipStore';
 
 interface OddsGridProps {
   events: Event[];
@@ -278,29 +277,15 @@ interface OddsCellProps {
   isPin: boolean;
 }
 
-function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine, isPin }: OddsCellProps) {
-  const addBet = useBetslipStore((state) => state.addBet);
-  const bets = useBetslipStore((state) => state.bets);
-
+function OddsCell({ odds, isBest, showLine, isPin }: OddsCellProps) {
   const formattedOdds = formatAmerican(odds.odds);
   const isPositive = odds.odds > 0;
-
-  const isInSlip = bets.some(
-    (b) => b.eventId === event.id && b.bookId === odds.bookId && b.outcomeName === outcomeName
-  );
+  const href = getVenue(odds.bookId).deepLink || undefined;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isInSlip) return;
-    addBet({
-      eventId: event.id,
-      event,
-      marketType,
-      outcomeName,
-      bookId: odds.bookId,
-      odds: odds.odds,
-      line: odds.line,
-    });
+    if (!href) return;
+    window.open(href, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -310,7 +295,7 @@ function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine, isPi
       className={`
         group relative px-1.5 py-1 w-full text-center border
         ${isPin ? 'border-pin' : isBest ? 'border-lichen' : 'border-transparent hover:border-line'}
-        ${isInSlip ? 'border-moss bg-moss/20' : ''}
+        ${href ? 'cursor-pointer' : 'cursor-default'}
       `}
     >
       {showLine && odds.line !== undefined && (
@@ -326,7 +311,6 @@ function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine, isPi
       >
         {formattedOdds}
       </span>
-      {isInSlip && <div className="font-mono text-[10px] text-moss-2 mt-0.5">Added</div>}
     </button>
   );
 }

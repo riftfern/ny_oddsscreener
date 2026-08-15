@@ -80,7 +80,7 @@ export default function ExchangesPage() {
         <div>
           <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Exchanges</h1>
           <p className="text-ink-dim font-mono text-[13px] mt-1">
-            Kalshi and Polymarket prediction-market lines
+            Kalshi and Polymarket leftovers. Matched game lines also show on Odds.
           </p>
         </div>
 

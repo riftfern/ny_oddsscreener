@@ -1,11 +1,9 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { Betslip, BetslipToggle } from '../betslip';
 import { usePlan } from '@/components/auth/AuthProvider';
 
 const navItems = [
   { path: '/app', label: 'Odds', end: true },
-  { path: '/app/ev', label: '+EV' },
-  { path: '/app/arb', label: 'Arb' },
+  { path: '/app/ev', label: 'Edges' },
   { path: '/app/exchanges', label: 'Exchanges' },
   { path: '/app/settings', label: 'Settings' },
 ];
@@ -70,8 +68,6 @@ export default function Layout() {
         </div>
       </footer>
 
-      <BetslipToggle />
-      <Betslip />
     </div>
   );
 }

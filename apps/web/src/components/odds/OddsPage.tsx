@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react';
 import { useOdds } from '@/hooks/useOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
-import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
+import OddsBoard from './OddsBoard';
+import { OddsGridSkeleton } from './OddsGrid';
 import UpgradeCard from '@/components/auth/UpgradeCard';
 import { useCheckout } from '@/hooks/useCheckout';
 import StaleBanner from '@/components/common/StaleBanner';
@@ -9,23 +11,33 @@ import DebugFooter from '@/components/common/DebugFooter';
 import SharpCoverageNotice from '@/components/common/SharpCoverageNotice';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
-import { SPORT_INFO, type MarketType } from '@ny-sharp-edge/shared';
+import { SPORT_INFO, isUpcomingEvent, type MarketType } from '@ny-sharp-edge/shared';
 
 export default function OddsPage() {
   const { filter, setMarketType } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
   const debug = useDebugMode();
   const checkout = useCheckout();
+  const [horizon, setHorizon] = useState<'soon' | 'all'>('soon');
 
   const sportName = SPORT_INFO[filter.sport].name;
+  const marketType: MarketType = filter.marketType === 'all' ? 'h2h' : filter.marketType;
+
+  const boardEvents = useMemo(() => {
+    const events = data?.events ?? [];
+    const windowed = horizon === 'soon' ? events.filter((e) => isUpcomingEvent(e.commenceTime)) : events;
+    return [...windowed].sort(
+      (a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime)
+    );
+  }, [data?.events, horizon]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Odds</h1>
           <p className="text-ink-dim font-mono text-[13px] mt-1">
-            US books + Pinnacle fair line
+            Best shop to bet. Pinnacle is the fair line.
           </p>
         </div>
 
@@ -43,16 +55,33 @@ export default function OddsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <SportSelector sharpCoverage={data?.sharpCoverage} />
 
-        <select
-          className="bg-bg-2 text-ink font-mono text-[12px] px-3 py-2 border border-line"
-          value={filter.marketType}
-          onChange={(e) => setMarketType(e.target.value as MarketType | 'all')}
-        >
-          <option value="all">All Markets</option>
-          <option value="h2h">Moneyline</option>
-          <option value="spreads">Spread</option>
-          <option value="totals">Totals</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-1">
+          {([
+            ['h2h', 'Moneyline'],
+            ['spreads', 'Spread'],
+            ['totals', 'Total'],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setMarketType(value)}
+              className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
+                marketType === value
+                  ? 'bg-moss text-ink border-moss'
+                  : 'bg-transparent text-ink-dim border-line hover:border-moss hover:text-ink'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setHorizon((h) => (h === 'soon' ? 'all' : 'soon'))}
+            className="ml-2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border border-line text-ink-dim hover:text-ink"
+          >
+            {horizon === 'soon' ? 'Next 3 days' : 'All games'}
+          </button>
+        </div>
       </div>
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
@@ -100,7 +129,22 @@ export default function OddsPage() {
         </div>
       )}
 
-      {data && data.events.length > 0 && <OddsGrid events={data.events} />}
+      {data && data.events.length > 0 && boardEvents.length === 0 && (
+        <div className="text-center py-12 space-y-3">
+          <p className="text-ink-dim uppercase tracking-[0.18em] text-[11px]">
+            No {sportName} in the next 3 days
+          </p>
+          <button
+            type="button"
+            onClick={() => setHorizon('all')}
+            className="font-mono text-[11px] text-lichen hover:text-ink underline underline-offset-2"
+          >
+            Show later games ({data.events.length})
+          </button>
+        </div>
+      )}
+
+      {boardEvents.length > 0 && <OddsBoard events={boardEvents} marketType={marketType} />}
 
       {debug && (
         <DebugFooter
