@@ -185,7 +185,10 @@ export default function LandingPage() {
               No guaranteed profit. Arbitrage is theoretical until both legs clear.
             </p>
             <p>
-              Built independently — not affiliated with OddsJam, Kalshi, or any sportsbook.
+              Built independently — not affiliated with OddsJam, Kalshi, or any sportsbook.{" "}
+              <Link to="/legal" className="underline hover:text-white transition-colors">
+                Legal
+              </Link>
             </p>
           </div>
         </div>

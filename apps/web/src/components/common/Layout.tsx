@@ -73,7 +73,12 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm text-gray-400">
             <span>NY Sharp Edge — information product, not a sportsbook</span>
-            <span>Data refreshes every 45 seconds</span>
+            <div className="flex items-center gap-4">
+              <Link to="/legal" className="hover:text-white transition-colors">
+                Legal
+              </Link>
+              <span>Data refreshes every 45 seconds</span>
+            </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
             18+ only. Not gambling advice. Odds can move and lines can be pulled at any time.

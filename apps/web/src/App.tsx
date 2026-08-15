@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, RequireAuth } from '@/components/auth/AuthProvider';
 import Layout from '@/components/common/Layout';
 import LandingPage from '@/components/marketing/LandingPage';
+import LegalPage from '@/components/marketing/LegalPage';
 import OddsPage from '@/components/odds/OddsPage';
 import EVPage from '@/components/ev/EVPage';
 import ArbitragePage from '@/components/arb/ArbitragePage';
@@ -14,6 +15,9 @@ function App() {
         <Routes>
           {/* Marketing landing page — no Layout, no Betslip */}
           <Route path="/" element={<LandingPage />} />
+
+          {/* Legal page — public, no Layout */}
+          <Route path="/legal" element={<LegalPage />} />
 
           {/* App shell */}
           <Route
