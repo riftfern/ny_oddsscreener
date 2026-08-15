@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMockEvents, SPORTS } from '@ny-sharp-edge/shared';
+import { SPORTS } from '@ny-sharp-edge/shared';
 import OddsGrid from '@/components/odds/OddsGrid';
+import { useOdds } from '@/hooks/useOdds';
 import { useCheckout } from '@/hooks/useCheckout';
-import { Check } from 'lucide-react';
 
 const BULLETS = [
   '+EV vs Pinnacle',
@@ -11,40 +11,48 @@ const BULLETS = [
   'Exchange screen (Kalshi + Polymarket)',
 ];
 
+const requireAuth = import.meta.env.VITE_REQUIRE_AUTH === 'true';
+
 export default function LandingPage() {
-  const screenshotEvents = useMemo(
-    () => getMockEvents(SPORTS.NBA).slice(0, 2),
-    []
-  );
+  const { data, isLoading, error } = useOdds(SPORTS.NFL);
   const checkout = useCheckout();
+  const [boardOnly, setBoardOnly] = useState(!requireAuth);
+
+  const liveEvents = data?.events.slice(0, 2) ?? [];
+  const linesUnavailable = Boolean(error) || (!isLoading && liveEvents.length === 0);
 
   const handleCheckout = async (plan: 'edge' | 'pro') => {
+    if (boardOnly) {
+      window.location.href = '/app';
+      return;
+    }
     const result = await checkout(plan);
     if (result.url) {
       window.location.href = result.url;
     } else {
-      window.location.href = '/app';
+      setBoardOnly(true);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* Marketing Header */}
-      <header className="bg-gray-800 border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-white">
-            LineEdge
+    <div className="min-h-screen bg-bg text-ink flex flex-col">
+      <header className="h-12 border-b border-line">
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+          <Link to="/" className="font-display font-bold tracking-[0.22em] text-lg text-ink">
+            LINEEDGE
           </Link>
           <div className="flex items-center gap-4">
+            {requireAuth && (
+              <Link
+                to="/app"
+                className="text-[11px] uppercase tracking-[0.18em] text-ink-dim hover:text-ink"
+              >
+                Sign in
+              </Link>
+            )}
             <Link
               to="/app"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/app"
-              className="text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors"
+              className="text-[11px] uppercase tracking-[0.18em] bg-moss hover:bg-moss-2 text-ink px-4 py-2"
             >
               Open app
             </Link>
@@ -52,147 +60,143 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-16 md:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-                  Find +EV lines without a $200/mo terminal.
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            <div className="space-y-10">
+              <div className="space-y-6">
+                <h1 className="font-display font-bold text-ink uppercase tracking-tight leading-[0.9] text-[clamp(48px,8vw,92px)]">
+                  FIND +EV
+                  <br />
+                  WITHOUT A
+                  <br />
+                  $200 TERMINAL.
                 </h1>
-                <p className="text-xl text-gray-300">
+                <p className="font-mono text-[14px] text-ink-dim max-w-md">
                   Pinnacle fair odds. US books. Kalshi and Polymarket on Pro. $19/mo.
                 </p>
               </div>
 
-              <ul className="space-y-3">
-                {BULLETS.map((bullet) => (
-                  <li key={bullet} className="flex items-center gap-3 text-gray-300">
-                    <span className="inline-flex items-center justify-center rounded-full bg-blue-600/20 p-1">
-                      <Check className="w-4 h-4 text-blue-400" />
-                    </span>
-                    {bullet}
+              <ol className="space-y-2 font-mono text-[14px] text-ink">
+                {BULLETS.map((bullet, i) => (
+                  <li key={bullet} className="flex gap-4">
+                    <span className="text-ink-dim">{String(i + 1).padStart(2, '0')}</span>
+                    <span>{bullet}</span>
                   </li>
                 ))}
-              </ul>
+              </ol>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                {boardOnly ? (
+                  <Link
+                    to="/app"
+                    className="inline-flex justify-center items-center bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
+                  >
+                    Open the board →
+                  </Link>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleCheckout('edge')}
+                      className="inline-flex justify-center items-center bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
+                    >
+                      Start with Edge — $19/mo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCheckout('pro')}
+                      className="inline-flex justify-center items-center border border-moss text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3 hover:bg-moss"
+                    >
+                      Go Pro — $49/mo
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="border border-line overflow-hidden max-h-[520px] pointer-events-none">
+              {isLoading && (
+                <div className="p-8 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-dim">
+                  Loading live lines…
+                </div>
+              )}
+              {linesUnavailable && (
+                <div className="p-8 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-dim">
+                  LIVE LINES UNAVAILABLE
+                </div>
+              )}
+              {!isLoading && !linesUnavailable && (
+                <div className="p-3">
+                  <OddsGrid events={liveEvents} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-line">
+        <div className="max-w-7xl mx-auto px-4 py-16">
+          <p className="label mb-8">Price</p>
+          <div className="grid md:grid-cols-2 gap-0 max-w-xl border border-line">
+            <div className="p-6 border-b md:border-b-0 md:border-r border-line">
+              <p className="label">Edge</p>
+              <p className="font-mono text-[48px] leading-none text-ink mt-4">$19</p>
+              <p className="font-mono text-[12px] text-ink-dim mt-2">/mo · live books + +EV</p>
+              {boardOnly ? (
+                <Link
+                  to="/app"
+                  className="mt-6 inline-block font-mono text-[13px] text-lichen hover:text-ink"
+                >
+                  Open the board →
+                </Link>
+              ) : (
                 <button
                   type="button"
                   onClick={() => handleCheckout('edge')}
-                  className="inline-flex justify-center items-center bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+                  className="mt-6 font-mono text-[13px] text-lichen hover:text-ink"
                 >
-                  Start with Edge — $19/mo
+                  Get Edge
                 </button>
+              )}
+            </div>
+            <div className="p-6">
+              <p className="label">Pro</p>
+              <p className="font-mono text-[48px] leading-none text-ink mt-4">$49</p>
+              <p className="font-mono text-[12px] text-ink-dim mt-2">/mo · arb + exchanges</p>
+              {boardOnly ? (
+                <Link
+                  to="/app"
+                  className="mt-6 inline-block font-mono text-[13px] text-lichen hover:text-ink"
+                >
+                  Open the board →
+                </Link>
+              ) : (
                 <button
                   type="button"
                   onClick={() => handleCheckout('pro')}
-                  className="inline-flex justify-center items-center bg-gray-700 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+                  className="mt-6 font-mono text-[13px] text-lichen hover:text-ink"
                 >
-                  Go Pro — $49/mo
+                  Get Pro
                 </button>
-              </div>
-            </div>
-
-            {/* Screenshot slot */}
-            <div className="relative rounded-xl border border-gray-700 bg-gray-800/50 p-4 shadow-2xl overflow-hidden">
-              <div className="pointer-events-none opacity-90">
-                <OddsGrid events={screenshotEvents} />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent pointer-events-none" />
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="border-t border-gray-800 bg-gray-900/50">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-white">Simple pricing</h2>
-            <p className="text-gray-400 mt-2">
-              Free: 15-minute delayed odds. No $99+ tiers. Cancel anytime.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Edge */}
-            <div className="rounded-xl border border-gray-700 bg-gray-800/70 p-6">
-              <h3 className="text-xl font-bold text-white">Edge</h3>
-              <p className="text-3xl font-bold text-white mt-4">
-                $19<span className="text-base font-normal text-gray-400">/mo</span>
-              </p>
-              <ul className="mt-6 space-y-3 text-sm text-gray-300">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> Live US books
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> +EV vs Pinnacle
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> 6 sports
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> Quarter-Kelly sizing
-                </li>
-              </ul>
-              <button
-                type="button"
-                onClick={() => handleCheckout('edge')}
-                className="mt-6 block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-lg transition-colors"
-              >
-                Get Edge
-              </button>
-            </div>
-
-            {/* Pro */}
-            <div className="rounded-xl border border-blue-500/30 bg-gray-800/70 p-6 relative">
-              <span className="absolute top-0 right-0 -mt-3 mr-4 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                Pro
-              </span>
-              <h3 className="text-xl font-bold text-white">Pro</h3>
-              <p className="text-3xl font-bold text-white mt-4">
-                $49<span className="text-base font-normal text-gray-400">/mo</span>
-              </p>
-              <ul className="mt-6 space-y-3 text-sm text-gray-300">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> Everything in Edge
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> Arbitrage finder
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-blue-400" /> Kalshi + Polymarket screen
-                </li>
-              </ul>
-              <button
-                type="button"
-                onClick={() => handleCheckout('pro')}
-                className="mt-6 block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-lg transition-colors"
-              >
-                Get Pro
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Disclaimer Footer */}
-      <footer className="border-t border-gray-800 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="text-sm text-gray-400 space-y-2">
-            <p>
-              18+ only. Not gambling advice. Odds can move and lines can be pulled at any time.
-              No guaranteed profit. Arbitrage is theoretical until both legs clear.
-            </p>
-            <p>
-              Built independently — not affiliated with OddsJam, Kalshi, or any sportsbook.{" "}
-              <Link to="/legal" className="underline hover:text-white transition-colors">
-                Legal
-              </Link>
-            </p>
-          </div>
+      <footer className="border-t border-line">
+        <div className="max-w-7xl mx-auto px-4 py-4 font-mono text-[11px] text-ink-dim flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>LINEEDGE</span>
+          <span>·</span>
+          <span>18+</span>
+          <span>·</span>
+          <span>NOT ADVICE</span>
+          <span>·</span>
+          <Link to="/legal" className="hover:text-ink">
+            /legal
+          </Link>
         </div>
       </footer>
     </div>

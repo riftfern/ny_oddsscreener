@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useExchangeOdds } from '@/hooks/useExchangeOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from '@/components/odds/SportSelector';
@@ -9,7 +9,7 @@ import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
-import { VENUES, SPORT_INFO, type Event, type VenueKind } from '@ny-sharp-edge/shared';
+import { VENUES, type Event, type VenueKind } from '@ny-sharp-edge/shared';
 
 const EXCHANGE_KINDS: VenueKind[] = ['prediction', 'exchange'];
 
@@ -46,29 +46,47 @@ function filterExchangeEvents(events: Event[]): Event[] {
 export default function ExchangesPage() {
   const { filter } = useOddsStore();
   const [tab, setTab] = useState<'games' | 'other'>('games');
-  const { data, isLoading, error, dataUpdatedAt } = useExchangeOdds(filter.sport, tab === 'other');
+  const autoSwitchedFor = useRef<string | null>(null);
+  const gamesQuery = useExchangeOdds(filter.sport, false);
+  const otherQuery = useExchangeOdds(filter.sport, true);
   const debug = useDebugMode();
 
-  const sportName = SPORT_INFO[filter.sport].name;
-  const exchangeEvents = data ? filterExchangeEvents(data.events) : [];
+  const gamesEvents = gamesQuery.data ? filterExchangeEvents(gamesQuery.data.events) : [];
+  const otherEvents = otherQuery.data ? filterExchangeEvents(otherQuery.data.events) : [];
+
+  useEffect(() => {
+    setTab('games');
+  }, [filter.sport]);
+
+  useEffect(() => {
+    if (autoSwitchedFor.current === filter.sport) return;
+    if (gamesQuery.isLoading || otherQuery.isLoading) return;
+    if (gamesEvents.length === 0 && otherEvents.length > 0) {
+      setTab('other');
+      autoSwitchedFor.current = filter.sport;
+    }
+  }, [filter.sport, gamesQuery.isLoading, otherQuery.isLoading, gamesEvents.length, otherEvents.length]);
+
+  const activeQuery = tab === 'other' ? otherQuery : gamesQuery;
+  const exchangeEvents = tab === 'other' ? otherEvents : gamesEvents;
+  const isLoading = tab === 'other' ? otherQuery.isLoading : gamesQuery.isLoading;
+  const error = activeQuery.error;
 
   return (
     <PlanGate requiredPlan="pro">
 
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Exchanges</h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Exchanges</h1>
+          <p className="text-ink-dim font-mono text-[13px] mt-1">
             Kalshi and Polymarket prediction-market lines
           </p>
         </div>
 
-        {dataUpdatedAt && (
-          <div className="text-sm text-gray-400">
-            Last updated:{' '}
-            {new Date(dataUpdatedAt).toLocaleTimeString('en-US', {
+        {activeQuery.dataUpdatedAt && (
+          <div className="font-mono text-[11px] text-ink-dim">
+            {new Date(activeQuery.dataUpdatedAt).toLocaleTimeString('en-US', {
               hour: 'numeric',
               minute: '2-digit',
               second: '2-digit',
@@ -77,18 +95,17 @@ export default function ExchangesPage() {
         )}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <SportSelector />
 
-        <div className="flex space-x-2">
+        <div className="flex gap-1">
           <button
             type="button"
             onClick={() => setTab('games')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
               tab === 'games'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                ? 'bg-moss text-ink border-moss'
+                : 'bg-transparent text-ink-dim border-line hover:text-ink'
             }`}
           >
             Games
@@ -96,10 +113,10 @@ export default function ExchangesPage() {
           <button
             type="button"
             onClick={() => setTab('other')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
               tab === 'other'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                ? 'bg-moss text-ink border-moss'
+                : 'bg-transparent text-ink-dim border-line hover:text-ink'
             }`}
           >
             Other markets
@@ -107,9 +124,8 @@ export default function ExchangesPage() {
         </div>
       </div>
 
-      {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+      {activeQuery.data?.stale && <StaleBanner cachedAt={activeQuery.data.cachedAt} />}
 
-      {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
       {error && error instanceof ApiError && error.status === 402 && (
@@ -117,22 +133,17 @@ export default function ExchangesPage() {
       )}
 
       {error && !(error instanceof ApiError && error.status === 402) && (
-        <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
-          <p className="text-red-400">
+        <div className="border border-bad p-4">
+          <p className="text-bad font-mono text-[13px]">
             Failed to load exchange odds. Make sure the API server is running.
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Run <code className="bg-gray-800 px-2 py-1 rounded">pnpm dev</code> in the project root
           </p>
         </div>
       )}
 
       {!isLoading && !error && exchangeEvents.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400">
-            {tab === 'other'
-              ? 'No unmatched exchange markets.'
-              : `No exchange line for ${sportName} yet.`}
+          <p className="text-ink-dim uppercase tracking-[0.18em] text-[11px]">
+            NO JOINED EXCHANGE LINE FOR THIS SPORT.
           </p>
         </div>
       )}
@@ -143,8 +154,8 @@ export default function ExchangesPage() {
 
       {debug && (
         <DebugFooter
-          cachedAt={data?.cachedAt}
-          remainingCredits={data?.remainingCredits}
+          cachedAt={activeQuery.data?.cachedAt}
+          remainingCredits={activeQuery.data?.remainingCredits}
         />
       )}
     </div>

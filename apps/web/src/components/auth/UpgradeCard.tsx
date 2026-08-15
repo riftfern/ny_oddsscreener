@@ -1,4 +1,8 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCheckout } from '@/hooks/useCheckout';
+
+const requireAuth = import.meta.env.VITE_REQUIRE_AUTH === 'true';
 
 type UpgradablePlan = 'edge' | 'pro';
 
@@ -26,13 +30,14 @@ export default function UpgradeCard({
 }: UpgradeCardProps) {
   const checkout = useCheckout();
   const copy = PLAN_COPY[requiredPlan];
+  const [boardOnly, setBoardOnly] = useState(!requireAuth);
 
   const handleUpgrade = async () => {
     const result = await checkout(requiredPlan);
     if (result.url) {
       window.location.href = result.url;
     } else {
-      window.location.href = '/app';
+      setBoardOnly(true);
     }
   };
 
@@ -46,13 +51,22 @@ export default function UpgradeCard({
         </p>
         <p className="text-[11px] uppercase tracking-[0.18em] text-ink-dim mt-1">Cancel anytime</p>
       </div>
-      <button
-        type="button"
-        onClick={handleUpgrade}
-        className="mt-6 inline-block bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
-      >
-        Upgrade to {copy.name}
-      </button>
+      {boardOnly ? (
+        <Link
+          to="/app"
+          className="mt-6 inline-block bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
+        >
+          Open the board →
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={handleUpgrade}
+          className="mt-6 inline-block bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
+        >
+          Upgrade to {copy.name}
+        </button>
+      )}
     </div>
   );
 }
