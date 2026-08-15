@@ -3,7 +3,6 @@ import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
 import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
 import UpgradeCard from '@/components/auth/UpgradeCard';
-import { usePlan } from '@/components/auth/AuthProvider';
 import { useCheckout } from '@/hooks/useCheckout';
 import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
@@ -15,7 +14,6 @@ export default function OddsPage() {
   const { filter, setMarketType } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
   const debug = useDebugMode();
-  const { plan } = usePlan();
   const checkout = useCheckout();
 
   const sportName = SPORT_INFO[filter.sport].name;
@@ -75,7 +73,7 @@ export default function OddsPage() {
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
 
-      {(data?.delayed || plan === 'free') && (
+      {data?.delayed && (
         <div className="bg-blue-900/20 border border-blue-500/40 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-blue-100 text-sm">
             Free tier shows lines delayed 15 minutes. Upgrade to Edge for live Pinnacle +EV.

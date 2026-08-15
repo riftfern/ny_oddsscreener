@@ -7,7 +7,8 @@ import { requirePlan } from '../middleware/plan.js';
 const router: RouterType = Router();
 
 // GET /api/odds?sport=americanfootball_nfl
-// Free tier is allowed: they get 15-minute delayed lines (funnel).
+// Free-tier 15-minute delay only applies when auth is actually on.
+// Until Clerk exists (REQUIRE_AUTH=false), everyone on this box gets live lines.
 router.get('/', requirePlan('free'), async (req, res) => {
   const sport = (req.query.sport as SportKey) || SPORTS.NFL;
 
@@ -22,7 +23,10 @@ router.get('/', requirePlan('free'), async (req, res) => {
 
   try {
     const plan = (req as { resolvedPlan?: string }).resolvedPlan;
-    const data = await fetchOddsResponse(sport, { delayed: plan === 'free' });
+    const authOn = process.env.REQUIRE_AUTH === 'true';
+    const data = await fetchOddsResponse(sport, {
+      delayed: authOn && plan === 'free',
+    });
     res.json(data);
   } catch (error) {
     console.error('Error fetching odds:', error);
