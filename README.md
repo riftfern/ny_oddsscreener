@@ -20,11 +20,25 @@ Built with React, Vite, Express, TypeScript, TanStack Query, Zustand, and Tailwi
 
 ```bash
 pnpm install
-USE_MOCK_DATA=true REQUIRE_AUTH=false DEV_PLAN=pro pnpm dev
+pnpm demo
 ```
 
 - Web: http://localhost:3000
 - API: http://localhost:3001
+
+## Run against The Odds API (live)
+
+Put your key in `apps/api/.env` and set `USE_MOCK_DATA=false`. Then:
+
+```bash
+pnpm live
+```
+
+Auth stays off (`REQUIRE_AUTH=false`, `DEV_PLAN=pro`) until Clerk/Stripe exist.
+
+Credit math: each sport refresh costs one unit per region. Default Edge poll is `us,us2,eu` = **3 units** per sport per 45s cache TTL. Do not add `us_ex` to `ODDS_REGIONS`. The `/sports` catalog is cheap; `/odds` is what burns the key.
+
+Pinnacle lives in region `eu`. It is present on MLB and some NFL events right now. NBA can return games with **no Pinnacle line** (offseason / no market). +EV skips a market when there is no sharp book.
 
 ## Record a demo
 
@@ -32,7 +46,7 @@ USE_MOCK_DATA=true REQUIRE_AUTH=false DEV_PLAN=pro pnpm dev
 pnpm demo
 ```
 
-This runs the app on mock data so you can record a Loom without burning The Odds API credits. Open `/`, `/app`, `/app/ev`, `/app/arb`, `/app/exchanges`, and `/legal` in order. Stay on mock data for the recording.
+This forces mock data so you can record a Loom without burning credits. Open `/`, `/app`, `/app/ev`, `/app/arb`, `/app/exchanges`, and `/legal`.
 
 ## Configure Clerk and Stripe
 
