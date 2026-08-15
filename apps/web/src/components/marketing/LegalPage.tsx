@@ -7,7 +7,7 @@ export default function LegalPage() {
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-bold text-white">
-            NY Sharp Edge
+            LineEdge
           </Link>
           <Link
             to="/app"
@@ -25,7 +25,7 @@ export default function LegalPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-2">Information product only</h2>
             <p>
-              NY Sharp Edge is not a sportsbook and does not accept wagers. We do not place bets on
+              LineEdge is not a sportsbook and does not accept wagers. We do not place bets on
               your behalf. We are not a registered investment advisor.
             </p>
           </section>
@@ -62,7 +62,7 @@ export default function LegalPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-2">New York users</h2>
             <p>
-              In New York and everywhere else we operate, NY Sharp Edge is an informational tool
+              In New York and everywhere else we operate, LineEdge is an informational tool
               only. We do not accept wagers and are not a gambling operator.
             </p>
           </section>

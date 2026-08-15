@@ -67,7 +67,7 @@ app.use((_req, res) => {
 app.listen(PORT, () => {
   console.log(`
   ╔═══════════════════════════════════════════════╗
-  ║     NY Sharp Edge API Server                  ║
+  ║     LineEdge API Server                       ║
   ║     Running on http://localhost:${PORT}          ║
   ╚═══════════════════════════════════════════════╝
 

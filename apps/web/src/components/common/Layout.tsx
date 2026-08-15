@@ -28,7 +28,7 @@ export default function Layout() {
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <Link to="/" className="text-xl font-bold text-white hover:text-gray-200 transition-colors">
-                NY Sharp Edge
+                LineEdge
               </Link>
               {isLoaded && (
                 <span className={`text-xs ${PLAN_BADGE_COLORS[plan]} px-2 py-0.5 rounded text-white uppercase tracking-wider`}>
@@ -74,7 +74,7 @@ export default function Layout() {
       <footer className="bg-gray-800 border-t border-gray-700 mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm text-gray-400">
-            <span>NY Sharp Edge — information product, not a sportsbook</span>
+            <span>LineEdge — information product, not a sportsbook</span>
             <div className="flex items-center gap-4">
               <Link to="/legal" className="hover:text-white transition-colors">
                 Legal

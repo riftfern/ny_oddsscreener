@@ -33,7 +33,7 @@ export default function LandingPage() {
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-bold text-white">
-            NY Sharp Edge
+            LineEdge
           </Link>
           <div className="flex items-center gap-4">
             <Link

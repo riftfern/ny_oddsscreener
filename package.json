@@ -2,7 +2,7 @@
   "name": "ny-sharp-edge",
   "version": "0.1.0",
   "private": true,
-  "description": "NY Sportsbook Odds Screener - +EV betting tool for NY legal sportsbooks",
+  "description": "LineEdge — odds screener and +EV finder vs a Pinnacle fair line",
   "scripts": {
     "dev": "turbo run dev",
     "demo": "./scripts/demo.sh",

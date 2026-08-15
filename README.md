@@ -1,4 +1,4 @@
-# NY Sharp Edge
+# LineEdge
 
 A sportsbook odds screener that finds +EV lines against a sharp fair line.
 

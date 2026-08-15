@@ -1,6 +1,6 @@
 # CLAUDE.md - Project Context & Guidelines
 
-## Project: NY Sharp Edge (ny_oddsscreener)
+## Project: LineEdge (repo folder: ny_oddsscreener)
 A high-performance sportsbook odds screener and +EV betting tool for the New York market.
 
 ## 🏗 Architecture
