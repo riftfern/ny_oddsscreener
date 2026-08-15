@@ -105,7 +105,16 @@ export const api = {
     return fetchJson(`/arbitrage${qs ? `?${qs}` : ''}`);
   },
 
-  health: async (): Promise<{ status: string }> => {
+  health: async (): Promise<{
+    status: string;
+    mock: boolean;
+    authRequired: boolean;
+    telegramConfigured: boolean;
+    nativeExchanges: boolean;
+    sharpFallback: 'off' | 'oddspapi';
+    snapshots: boolean;
+    remainingCredits?: number;
+  }> => {
     return fetchJson('/health');
   },
 

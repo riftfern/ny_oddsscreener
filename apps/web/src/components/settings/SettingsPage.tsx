@@ -11,11 +11,15 @@ export default function SettingsPage() {
   const withdrawFunds = useBankrollStore((s) => s.withdrawFunds);
   const [deposit, setDeposit] = useState('100');
   const [telegram, setTelegram] = useState<{ configured: boolean; mockDisabled: boolean } | null>(null);
+  const [health, setHealth] = useState<Awaited<ReturnType<typeof api.health>> | null>(null);
   const checkout = useCheckout();
 
   useEffect(() => {
     api.getSettings().then((s) => setTelegram(s.telegram)).catch(() => {
       setTelegram({ configured: false, mockDisabled: true });
+    });
+    api.health().then((h) => setHealth(h)).catch(() => {
+      setHealth(null);
     });
   }, []);
 
@@ -87,6 +91,31 @@ export default function SettingsPage() {
           </button>
         </div>
         <p className="text-xs text-gray-500">Stored in this browser only. Not a wallet.</p>
+      </section>
+
+      <section className="rounded-xl border border-gray-700 bg-gray-800/70 p-6 space-y-3">
+        <h2 className="text-lg font-semibold text-white">Server status</h2>
+        {!health && <p className="text-gray-400 text-sm">Checking server…</p>}
+        {health && (
+          <dl className="grid grid-cols-2 gap-3 text-sm">
+            <dt className="text-gray-400">Data source</dt>
+            <dd className="text-white font-medium">{health.mock ? 'Mock' : 'Live'}</dd>
+            <dt className="text-gray-400">Auth required</dt>
+            <dd className="text-white font-medium">{health.authRequired ? 'Yes' : 'No'}</dd>
+            <dt className="text-gray-400">Native exchanges</dt>
+            <dd className="text-white font-medium">{health.nativeExchanges ? 'On' : 'Off'}</dd>
+            <dt className="text-gray-400">Sharp fallback</dt>
+            <dd className="text-white font-medium">{health.sharpFallback}</dd>
+            <dt className="text-gray-400">Snapshots</dt>
+            <dd className="text-white font-medium">{health.snapshots ? 'On' : 'Off'}</dd>
+            {health.remainingCredits !== undefined && (
+              <>
+                <dt className="text-gray-400">Odds API credits</dt>
+                <dd className="text-white font-medium">{health.remainingCredits.toLocaleString()}</dd>
+              </>
+            )}
+          </dl>
+        )}
       </section>
 
       <section className="rounded-xl border border-gray-700 bg-gray-800/70 p-6 space-y-3">

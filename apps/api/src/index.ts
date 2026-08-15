@@ -10,6 +10,8 @@ import billingRouter from './routes/billing.js';
 import settingsRouter from './routes/settings.js';
 import { requirePlan } from './middleware/plan.js';
 import { telegramAlertPoller } from './services/telegramAlerts.js';
+import { getLastRemainingCredits } from './services/oddsApi.js';
+import { getOddsPapiConfig } from './services/oddsPapi.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,10 +35,19 @@ app.use(express.json());
 
 // Health check
 app.get('/api/health', (_req, res) => {
+  const remainingCredits = getLastRemainingCredits();
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     version: '0.1.0',
+    mock: process.env.USE_MOCK_DATA === 'true',
+    authRequired: process.env.REQUIRE_AUTH === 'true',
+    telegramConfigured:
+      !!process.env.TELEGRAM_BOT_TOKEN && !!process.env.TELEGRAM_CHAT_ID,
+    nativeExchanges: process.env.NATIVE_EXCHANGES !== 'false',
+    sharpFallback: getOddsPapiConfig().enabled ? 'oddspapi' : 'off',
+    snapshots: process.env.SNAPSHOTS === 'true',
+    ...(remainingCredits !== undefined ? { remainingCredits } : {}),
   });
 });
 
