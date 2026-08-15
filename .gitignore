@@ -37,5 +37,8 @@ coverage/
 *.tsbuildinfo
 vite.config.js
 
+# Append-only odds snapshots
+apps/api/data/
+
 # Hermes plans/notes
 .hermes/

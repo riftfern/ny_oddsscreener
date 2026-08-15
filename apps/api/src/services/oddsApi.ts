@@ -6,6 +6,7 @@ import { findCrossVenueEVOpportunities } from './crossVenueEv.js';
 import { OddsCache, defaultTtlMs } from './oddsCache.js';
 import { enrichEventsWithNativeExchanges } from './nativeExchanges.js';
 import { freeDelayMs, getDelayedSnapshot, publishLiveSnapshot } from './delayedOdds.js';
+import { appendOddsSnapshot } from './snapshots.js';
 
 export interface SharpCoverage {
   eventsWithSharp: number;
@@ -341,6 +342,8 @@ export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {})
 
     const data: OddsApiEvent[] = await response.json();
     const events = data.map(transformToEvent);
+
+    appendOddsSnapshot(sport, regions, events);
 
     if (useCache) {
       oddsCache.set(cacheKey, events);
