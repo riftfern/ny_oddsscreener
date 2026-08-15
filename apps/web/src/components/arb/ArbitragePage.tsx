@@ -26,7 +26,7 @@ export default function ArbitragePage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Arbitrage Finder</h1>
           <p className="text-gray-400 text-sm mt-1">
-            Find guaranteed profit opportunities across sportsbooks
+            Find theoretical arbitrage opportunities across sportsbooks
           </p>
         </div>
 
@@ -135,10 +135,10 @@ export default function ArbitragePage() {
       <div className="bg-gray-800/50 rounded-lg p-4 mt-8">
         <h3 className="text-sm font-medium text-gray-300 mb-2">How it works</h3>
         <ul className="text-sm text-gray-400 space-y-1">
-          <li>Arbitrage occurs when odds across different books guarantee a profit regardless of outcome</li>
-          <li>Place both bets at the suggested stake amounts to lock in the guaranteed profit</li>
+          <li>Arbitrage occurs when odds across different books imply a profit if both sides clear</li>
+          <li>Place both bets at the suggested stake amounts quickly; lines can move before the second leg fills</li>
           <li>Act quickly - arbitrage opportunities can disappear within seconds</li>
-          <li>Higher profit% = larger guaranteed return, but these are extremely rare</li>
+          <li>Higher profit% = larger theoretical return, but these are extremely rare</li>
         </ul>
       </div>
 

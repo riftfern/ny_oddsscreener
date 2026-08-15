@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { EVOpportunity } from '@ny-sharp-edge/shared';
 import { getVenue, SPORT_INFO, formatAmerican } from '@ny-sharp-edge/shared';
 
@@ -101,6 +102,47 @@ export default function EVOpportunityCard({ opportunity }: EVOpportunityCardProp
           ${(opportunity.evPercentage).toFixed(2)}
         </span>
       </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-700">
+        {book.deepLink && (
+          <a
+            href={book.deepLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            Open {book.name}
+          </a>
+        )}
+        <CopyBetButton
+          description={`${opportunity.outcomeName} ${formatAmerican(opportunity.bookOdds)} @ ${book.name} | fair ${formatAmerican(opportunity.fairOdds)} | EV ${opportunity.evPercentage.toFixed(1)}%${opportunity.kellySuggestion ? ` | 1/4 Kelly $${opportunity.kellySuggestion.toFixed(0)}` : ''}`}
+        />
+      </div>
     </div>
+  );
+}
+
+function CopyBetButton({ description }: { description: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(description);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Ignore clipboard errors (e.g., insecure context).
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex items-center justify-center flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
   );
 }
