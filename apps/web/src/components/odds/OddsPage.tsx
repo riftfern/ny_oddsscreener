@@ -20,19 +20,17 @@ export default function OddsPage() {
   const sportName = SPORT_INFO[filter.sport].name;
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Odds Comparison</h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Odds</h1>
+          <p className="text-ink-dim font-mono text-[13px] mt-1">
             US books + Pinnacle fair line
           </p>
         </div>
 
         {dataUpdatedAt && (
-          <div className="text-sm text-gray-400">
-            Last updated:{' '}
+          <div className="font-mono text-[11px] text-ink-dim">
             {new Date(dataUpdatedAt).toLocaleTimeString('en-US', {
               hour: 'numeric',
               minute: '2-digit',
@@ -42,34 +40,19 @@ export default function OddsPage() {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <SportSelector sharpCoverage={data?.sharpCoverage} />
 
-        <div className="flex items-center space-x-4">
-          <select
-            className="bg-gray-700 text-white text-sm rounded-lg px-3 py-2 border border-gray-600"
-            value={filter.marketType}
-            onChange={(e) => setMarketType(e.target.value as MarketType | 'all')}
-          >
-            <option value="all">All Markets</option>
-            <option value="h2h">Moneyline</option>
-            <option value="spreads">Spread</option>
-            <option value="totals">Totals</option>
-          </select>
-
-          <select
-            className="bg-gray-700 text-white text-sm rounded-lg px-3 py-2 border border-gray-600"
-            value={filter.date}
-            onChange={() => {
-              // TODO: implement date filter
-            }}
-          >
-            <option value="today">Today</option>
-            <option value="tomorrow">Tomorrow</option>
-            <option value="week">This Week</option>
-          </select>
-        </div>
+        <select
+          className="bg-bg-2 text-ink font-mono text-[12px] px-3 py-2 border border-line"
+          value={filter.marketType}
+          onChange={(e) => setMarketType(e.target.value as MarketType | 'all')}
+        >
+          <option value="all">All Markets</option>
+          <option value="h2h">Moneyline</option>
+          <option value="spreads">Spread</option>
+          <option value="totals">Totals</option>
+        </select>
       </div>
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
@@ -77,8 +60,8 @@ export default function OddsPage() {
       <SharpCoverageNotice coverage={data?.sharpCoverage} />
 
       {data?.delayed && (
-        <div className="bg-blue-900/20 border border-blue-500/40 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-blue-100 text-sm">
+        <div className="border border-warn p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-warn text-[11px] uppercase tracking-[0.14em]">
             Free tier shows lines delayed 15 minutes. Upgrade to Edge for live Pinnacle +EV.
           </p>
           <button
@@ -87,14 +70,13 @@ export default function OddsPage() {
               const result = await checkout('edge');
               window.location.href = result.url ?? '/app';
             }}
-            className="shrink-0 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg"
+            className="shrink-0 bg-moss hover:bg-moss-2 text-ink text-[11px] uppercase tracking-[0.14em] font-semibold px-4 py-2 border border-moss"
           >
             Upgrade — $19/mo
           </button>
         </div>
       )}
 
-      {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
       {error && error instanceof ApiError && error.status === 402 && (
@@ -102,19 +84,19 @@ export default function OddsPage() {
       )}
 
       {error && !(error instanceof ApiError && error.status === 402) && (
-        <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
-          <p className="text-red-400">
+        <div className="border border-bad p-4">
+          <p className="text-bad font-mono text-[13px]">
             Failed to load odds. Make sure the API server is running.
           </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Run <code className="bg-gray-800 px-2 py-1 rounded">pnpm dev</code> in the project root
+          <p className="font-mono text-[11px] text-ink-dim mt-2">
+            Run <code className="bg-bg-2 px-2 py-1 border border-line">pnpm live</code> or <code className="bg-bg-2 px-2 py-1 border border-line">pnpm demo</code>
           </p>
         </div>
       )}
 
       {data && data.events.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400">No {sportName} games scheduled for today</p>
+          <p className="text-ink-dim uppercase tracking-[0.18em] text-[11px]">No {sportName} games scheduled</p>
         </div>
       )}
 
