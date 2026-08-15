@@ -2,8 +2,9 @@ import { useOdds } from '@/hooks/useOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
 import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
-import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
+import { usePlan } from '@/components/auth/AuthProvider';
+import { useCheckout } from '@/hooks/useCheckout';
 import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
 import { useDebugMode } from '@/hooks/useDebugMode';
@@ -14,12 +15,12 @@ export default function OddsPage() {
   const { filter, setMarketType } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
   const debug = useDebugMode();
+  const { plan } = usePlan();
+  const checkout = useCheckout();
 
   const sportName = SPORT_INFO[filter.sport].name;
 
   return (
-    <PlanGate requiredPlan="edge">
-
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
@@ -74,6 +75,24 @@ export default function OddsPage() {
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
 
+      {(data?.delayed || plan === 'free') && (
+        <div className="bg-blue-900/20 border border-blue-500/40 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-blue-100 text-sm">
+            Free tier shows lines delayed 15 minutes. Upgrade to Edge for live Pinnacle +EV.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              const result = await checkout('edge');
+              window.location.href = result.url ?? '/app';
+            }}
+            className="shrink-0 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg"
+          >
+            Upgrade — $19/mo
+          </button>
+        </div>
+      )}
+
       {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
@@ -107,6 +126,5 @@ export default function OddsPage() {
         />
       )}
     </div>
-    </PlanGate>
   );
 }

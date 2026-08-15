@@ -111,7 +111,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-white">Simple pricing</h2>
-            <p className="text-gray-400 mt-2">No $99+ tiers. Cancel anytime.</p>
+            <p className="text-gray-400 mt-2">
+              Free: 15-minute delayed odds. No $99+ tiers. Cancel anytime.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
