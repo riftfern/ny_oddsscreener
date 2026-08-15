@@ -6,6 +6,7 @@ import UpgradeCard from '@/components/auth/UpgradeCard';
 import { useCheckout } from '@/hooks/useCheckout';
 import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
+import SharpCoverageNotice from '@/components/common/SharpCoverageNotice';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 import { SPORT_INFO, type MarketType } from '@ny-sharp-edge/shared';
@@ -43,7 +44,7 @@ export default function OddsPage() {
 
       {/* Filters */}
       <div className="flex items-center justify-between">
-        <SportSelector />
+        <SportSelector sharpCoverage={data?.sharpCoverage} />
 
         <div className="flex items-center space-x-4">
           <select
@@ -72,6 +73,8 @@ export default function OddsPage() {
       </div>
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+
+      <SharpCoverageNotice coverage={data?.sharpCoverage} />
 
       {data?.delayed && (
         <div className="bg-blue-900/20 border border-blue-500/40 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

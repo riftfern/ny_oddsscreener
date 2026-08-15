@@ -1,11 +1,17 @@
 import type { Event, SportKey, BookOdds, MarketOutcome, Market, EVOpportunity, ArbitrageOpportunity, RegionKey } from '@ny-sharp-edge/shared';
-import { SPORTS, getMockEvents } from '@ny-sharp-edge/shared';
+import { SPORTS, getMockEvents, pickSharpOdds } from '@ny-sharp-edge/shared';
 import { findEVOpportunities } from './evFinder.js';
 import { findArbitrageOpportunities } from './arbFinder.js';
 import { findCrossVenueEVOpportunities } from './crossVenueEv.js';
 import { OddsCache, defaultTtlMs } from './oddsCache.js';
 import { enrichEventsWithNativeExchanges } from './nativeExchanges.js';
 import { freeDelayMs, getDelayedSnapshot, publishLiveSnapshot } from './delayedOdds.js';
+
+export interface SharpCoverage {
+  eventsWithSharp: number;
+  eventsTotal: number;
+  sharpBooksSeen: string[];
+}
 
 const BASE_URL = 'https://api.the-odds-api.com/v4';
 
@@ -21,6 +27,7 @@ export interface OddsResponse {
   stale?: boolean;
   delayed?: boolean;
   remainingCredits?: number;
+  sharpCoverage: SharpCoverage;
 }
 
 export interface EVResponse {
@@ -32,6 +39,7 @@ export interface EVResponse {
   cachedAt: string;
   stale?: boolean;
   remainingCredits?: number;
+  sharpCoverage: SharpCoverage;
 }
 
 export interface ArbitrageResponse {
@@ -50,6 +58,32 @@ let lastRemainingCredits: number | undefined;
 
 export function getLastRemainingCredits(): number | undefined {
   return lastRemainingCredits;
+}
+
+export function computeSharpCoverage(events: Event[]): SharpCoverage {
+  const sharpBooksSeen = new Set<string>();
+  let eventsWithSharp = 0;
+
+  for (const event of events) {
+    let eventHasSharp = false;
+    for (const market of event.markets) {
+      if (market.outcomes.length !== 2) continue;
+      const sharp1 = pickSharpOdds(market.outcomes[0].bookOdds);
+      const sharp2 = pickSharpOdds(market.outcomes[1].bookOdds);
+      if (sharp1 && sharp2) {
+        eventHasSharp = true;
+        sharpBooksSeen.add(sharp1.bookId);
+        sharpBooksSeen.add(sharp2.bookId);
+      }
+    }
+    if (eventHasSharp) eventsWithSharp++;
+  }
+
+  return {
+    eventsWithSharp,
+    eventsTotal: events.length,
+    sharpBooksSeen: Array.from(sharpBooksSeen),
+  };
 }
 
 function getApiKey(): string | undefined {
@@ -381,6 +415,7 @@ export async function fetchExchangeOddsResponse(sport: SportKey): Promise<OddsRe
     cachedAt: result.cachedAt,
     stale: result.stale,
     remainingCredits: getLastRemainingCredits(),
+    sharpCoverage: computeSharpCoverage(result.events),
   };
 }
 
@@ -401,6 +436,7 @@ export async function fetchOddsResponse(
         cachedAt: existing.cachedAt,
         delayed: true,
         remainingCredits: getLastRemainingCredits(),
+        sharpCoverage: computeSharpCoverage(existing.events),
       };
     }
   }
@@ -419,6 +455,7 @@ export async function fetchOddsResponse(
         cachedAt: delayed.cachedAt,
         delayed: true,
         remainingCredits: getLastRemainingCredits(),
+        sharpCoverage: computeSharpCoverage(delayed.events),
       };
     }
   }
@@ -429,6 +466,7 @@ export async function fetchOddsResponse(
     cachedAt: result.cachedAt,
     stale: result.stale,
     remainingCredits: getLastRemainingCredits(),
+    sharpCoverage: computeSharpCoverage(result.events),
   };
 }
 
@@ -449,6 +487,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
       minEV,
       lastUpdated: new Date().toISOString(),
       cachedAt: new Date().toISOString(),
+      sharpCoverage: computeSharpCoverage(mockEvents),
     };
   }
 
@@ -489,6 +528,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number;
     cachedAt: merged.cachedAt,
     stale: merged.stale,
     remainingCredits: getLastRemainingCredits(),
+    sharpCoverage: computeSharpCoverage(merged.events),
   };
 }
 

@@ -5,6 +5,7 @@ import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
 import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
+import SharpCoverageNotice from '@/components/common/SharpCoverageNotice';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 
@@ -69,6 +70,8 @@ export default function EVPage() {
       </div>
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+
+      <SharpCoverageNotice coverage={data?.sharpCoverage} />
 
       {/* Content */}
       {isLoading && (

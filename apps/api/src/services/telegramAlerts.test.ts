@@ -51,6 +51,7 @@ describe('TelegramAlertPoller', () => {
       minEV: 2,
       lastUpdated: new Date().toISOString(),
       cachedAt: new Date().toISOString(),
+      sharpCoverage: { eventsWithSharp: 1, eventsTotal: 1, sharpBooksSeen: ['pinnacle'] },
     });
 
     vi.spyOn(oddsApi, 'fetchArbitrageResponse').mockResolvedValue({

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchOdds, fetchExchangeOdds, fetchExchangeOddsResponse, clearOddsCache } from './oddsApi';
+import { fetchOdds, fetchExchangeOdds, fetchExchangeOddsResponse, fetchOddsResponse, clearOddsCache } from './oddsApi';
 
 // A single The Odds API event carrying FanDuel (soft) + Pinnacle (sharp) prices.
 function makeOddsApiPayload() {
@@ -38,6 +38,37 @@ function makeOddsApiPayload() {
               outcomes: [
                 { name: 'Lakers', price: 110 },
                 { name: 'Knicks', price: -130 },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ];
+}
+
+// FanDuel-only fixture: no sharp book present.
+function makeFanDuelOnlyPayload() {
+  return [
+    {
+      id: 'evt-2',
+      sport_key: 'basketball_nba',
+      sport_title: 'NBA',
+      commence_time: '2026-08-15T00:00:00Z',
+      home_team: 'Celtics',
+      away_team: 'Heat',
+      bookmakers: [
+        {
+          key: 'fanduel',
+          title: 'FanDuel',
+          last_update: '2026-08-14T00:00:00Z',
+          markets: [
+            {
+              key: 'h2h',
+              last_update: '2026-08-14T00:00:00Z',
+              outcomes: [
+                { name: 'Heat', price: 130 },
+                { name: 'Celtics', price: -150 },
               ],
             },
           ],
@@ -102,6 +133,15 @@ describe('oddsApi fetchOdds', () => {
 
     // Two calls to fetchOdds, but the underlying HTTP fetch should fire only once.
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports zero sharp coverage when only soft books are present', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(makeFanDuelOnlyPayload()));
+
+    const response = await fetchOddsResponse('basketball_nba');
+    expect(response.sharpCoverage.eventsTotal).toBe(1);
+    expect(response.sharpCoverage.eventsWithSharp).toBe(0);
+    expect(response.sharpCoverage.sharpBooksSeen).toHaveLength(0);
   });
 
   it('returns stale last-good data when a live fetch fails', async () => {

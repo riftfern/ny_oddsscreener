@@ -39,6 +39,12 @@ async function fetchJson<T>(url: string): Promise<T> {
   return response.json();
 }
 
+export interface SharpCoverage {
+  eventsWithSharp: number;
+  eventsTotal: number;
+  sharpBooksSeen: string[];
+}
+
 export interface OddsResponse {
   events: Event[];
   lastUpdated: string;
@@ -46,6 +52,7 @@ export interface OddsResponse {
   stale?: boolean;
   delayed?: boolean;
   remainingCredits?: number;
+  sharpCoverage: SharpCoverage;
 }
 
 export interface EVResponse {
@@ -57,6 +64,7 @@ export interface EVResponse {
   cachedAt: string;
   stale?: boolean;
   remainingCredits?: number;
+  sharpCoverage: SharpCoverage;
 }
 
 export interface ArbitrageResponse {
