@@ -51,7 +51,8 @@ router.get('/exchanges', requirePlan('pro'), async (req, res) => {
   }
 
   try {
-    const data = await fetchExchangeOddsResponse(sport);
+    const unmatched = req.query.unmatched === '1' || req.query.unmatched === 'true';
+    const data = await fetchExchangeOddsResponse(sport, { unmatched });
     res.json(data);
   } catch (error) {
     console.error('Error fetching exchange odds:', error);

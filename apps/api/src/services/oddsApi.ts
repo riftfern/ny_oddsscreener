@@ -392,15 +392,36 @@ function nativeExchangesEnabled(): boolean {
   return process.env.NATIVE_EXCHANGES !== 'false';
 }
 
-export async function fetchExchangeOdds(sport: SportKey): Promise<FetchOddsResult> {
+export async function fetchExchangeOdds(
+  sport: SportKey,
+  options: { unmatched?: boolean } = {}
+): Promise<FetchOddsResult> {
+  // All-unmatched view: no sportsbook odds needed, just native markets.
+  if (options.unmatched) {
+    if (useMockData() || !nativeExchangesEnabled()) {
+      return { events: [], cachedAt: new Date().toISOString() };
+    }
+    try {
+      const enriched = await enrichEventsWithNativeExchanges(sport, []);
+      return {
+        events: enriched.unmatched,
+        cachedAt: new Date().toISOString(),
+      };
+    } catch (err) {
+      console.error('[exchanges] unmatched native enrich failed:', err);
+      return { events: [], cachedAt: new Date().toISOString() };
+    }
+  }
+
   const usEx = await fetchOdds(sport, { regions: exchangeRegions() });
   if (useMockData() || !nativeExchangesEnabled()) return usEx;
 
   try {
     const books = await fetchOdds(sport);
-    const withNative = await enrichEventsWithNativeExchanges(sport, books.events);
+    const enriched = await enrichEventsWithNativeExchanges(sport, books.events);
+    const sportUnmatched = enriched.unmatched.filter((event) => event.sportKey === sport);
     return {
-      events: withNative,
+      events: [...enriched.events, ...sportUnmatched],
       cachedAt: usEx.cachedAt,
       stale: usEx.stale || books.stale,
     };
@@ -410,8 +431,11 @@ export async function fetchExchangeOdds(sport: SportKey): Promise<FetchOddsResul
   }
 }
 
-export async function fetchExchangeOddsResponse(sport: SportKey): Promise<OddsResponse> {
-  const result = await fetchExchangeOdds(sport);
+export async function fetchExchangeOddsResponse(
+  sport: SportKey,
+  options: { unmatched?: boolean } = {}
+): Promise<OddsResponse> {
+  const result = await fetchExchangeOdds(sport, options);
   return {
     events: result.events,
     lastUpdated: new Date().toISOString(),

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useExchangeOdds } from '@/hooks/useExchangeOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from '@/components/odds/SportSelector';
@@ -44,7 +45,8 @@ function filterExchangeEvents(events: Event[]): Event[] {
 
 export default function ExchangesPage() {
   const { filter } = useOddsStore();
-  const { data, isLoading, error, dataUpdatedAt } = useExchangeOdds(filter.sport);
+  const [tab, setTab] = useState<'games' | 'other'>('games');
+  const { data, isLoading, error, dataUpdatedAt } = useExchangeOdds(filter.sport, tab === 'other');
   const debug = useDebugMode();
 
   const sportName = SPORT_INFO[filter.sport].name;
@@ -76,8 +78,33 @@ export default function ExchangesPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <SportSelector />
+
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={() => setTab('games')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === 'games'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            Games
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('other')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === 'other'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            Other markets
+          </button>
+        </div>
       </div>
 
       {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
@@ -103,7 +130,9 @@ export default function ExchangesPage() {
       {!isLoading && !error && exchangeEvents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-400">
-            No exchange line for {sportName} yet.
+            {tab === 'other'
+              ? 'No unmatched exchange markets.'
+              : `No exchange line for ${sportName} yet.`}
           </p>
         </div>
       )}

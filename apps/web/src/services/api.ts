@@ -84,8 +84,10 @@ export const api = {
     return fetchJson(`/odds?sport=${sport}`);
   },
 
-  getExchangeOdds: async (sport: SportKey): Promise<OddsResponse> => {
-    return fetchJson(`/odds/exchanges?sport=${sport}`);
+  getExchangeOdds: async (sport: SportKey, unmatched?: boolean): Promise<OddsResponse> => {
+    const qs = new URLSearchParams({ sport });
+    if (unmatched) qs.set('unmatched', '1');
+    return fetchJson(`/odds/exchanges?${qs.toString()}`);
   },
 
   getEVOpportunities: async (minEV?: number): Promise<EVResponse> => {
