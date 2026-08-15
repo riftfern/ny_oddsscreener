@@ -17,12 +17,10 @@ export function BetCard({ bet }: BetCardProps) {
     updateStake(bet.id, value);
   };
 
-  // Format the selection display
   const selectionDisplay = bet.line !== undefined
     ? `${bet.outcomeName} ${bet.line > 0 ? '+' : ''}${bet.line}`
     : bet.outcomeName;
 
-  // Format game time
   const gameTime = new Date(bet.event.commenceTime).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -32,37 +30,33 @@ export function BetCard({ bet }: BetCardProps) {
   });
 
   return (
-    <div className="bg-gray-700 rounded-lg p-3 relative group">
-      {/* Remove button */}
+    <div className="bg-bg border border-line p-3 relative group">
       <button
         onClick={() => removeBet(bet.id)}
         className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center
-                   text-gray-400 hover:text-red-400 hover:bg-gray-600 rounded
-                   opacity-0 group-hover:opacity-100 transition-opacity"
+                   text-ink-dim hover:text-bad hover:bg-bg-2
+                   opacity-0 group-hover:opacity-100"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      {/* Event info */}
-      <div className="text-xs text-gray-400 mb-1">
+      <div className="text-[11px] uppercase tracking-[0.14em] text-ink-dim mb-1">
         {bet.event.awayTeam} @ {bet.event.homeTeam}
       </div>
-      <div className="text-xs text-gray-500 mb-2">{gameTime}</div>
+      <div className="font-mono text-[11px] text-ink-dim mb-2">{gameTime}</div>
 
-      {/* Selection and odds */}
       <div className="flex items-center justify-between mb-3">
-        <span className="font-medium text-white">{selectionDisplay}</span>
-        <span className={`font-bold ${bet.odds > 0 ? 'text-green-400' : 'text-white'}`}>
+        <span className="font-medium text-ink">{selectionDisplay}</span>
+        <span className={`font-mono font-medium ${bet.odds > 0 ? 'text-lichen' : 'text-ink'}`}>
           {formatAmerican(bet.odds)}
         </span>
       </div>
 
-      {/* Stake input */}
       <div className="flex items-center gap-2">
         <div className="flex-1 relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-dim font-mono">$</span>
           <input
             type="number"
             value={bet.stake || ''}
@@ -70,13 +64,13 @@ export function BetCard({ bet }: BetCardProps) {
             placeholder="0.00"
             min="0"
             step="5"
-            className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 pl-7
-                       text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            className="w-full bg-bg-2 border border-line px-3 py-2 pl-7
+                       text-ink font-mono placeholder-ink-dim focus:border-moss focus:outline-none"
           />
         </div>
         <div className="text-right min-w-[80px]">
-          <div className="text-xs text-gray-400">To win</div>
-          <div className="text-green-400 font-medium">
+          <div className="text-[11px] uppercase tracking-[0.14em] text-ink-dim">To win</div>
+          <div className="text-lichen font-mono font-medium">
             ${payout > 0 ? (payout - bet.stake).toFixed(2) : '0.00'}
           </div>
         </div>

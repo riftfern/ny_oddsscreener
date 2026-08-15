@@ -14,66 +14,61 @@ export function Betslip() {
 
   const booksWithBets = useBooksWithBets();
 
-  // Get bets for active tab
   const activeBets = bets.filter((b) => b.bookId === activeTab);
 
-  // Calculate totals for active tab
   const totalStake = activeBets.reduce((sum, b) => sum + b.stake, 0);
   const totalPayout = activeBets.reduce((sum, b) => sum + calculatePayout(b.stake, b.odds), 0);
 
-  // Handle place bet - open sportsbook
   const handlePlaceBet = () => {
     if (!activeTab) return;
     const book = getVenue(activeTab);
-    window.open(book.deepLink, '_blank');
+    if (book.deepLink) window.open(book.deepLink, '_blank');
   };
 
   return (
     <>
-      {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-bg/80 z-40 md:hidden"
           onClick={closePanel}
         />
       )}
 
-      {/* Panel */}
       <div
         className={`
           fixed top-0 right-0 h-full w-full md:w-[380px] z-50
-          bg-gray-800 border-l border-gray-700
-          transform transition-transform duration-300 ease-in-out
+          bg-bg-2 border-l border-line
+          transform transition-transform duration-200 ease-out
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}
           flex flex-col
         `}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">Betslip</h2>
+        <div className="flex items-center justify-between px-4 h-12 border-b border-line">
+          <h2 className="font-display font-semibold uppercase tracking-[0.18em] text-[13px] text-ink">
+            Betslip
+          </h2>
           <div className="flex items-center gap-2">
             {bets.length > 0 && (
               <button
                 onClick={clearAll}
-                className="text-sm text-gray-400 hover:text-red-400 transition-colors"
+                className="text-[11px] uppercase tracking-[0.14em] text-ink-dim hover:text-bad"
               >
                 Clear All
               </button>
             )}
             <button
               onClick={closePanel}
-              className="p-2 hover:bg-gray-700 rounded transition-colors"
+              className="p-2 hover:bg-bg text-ink-dim hover:text-ink"
             >
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* Tabs */}
         {booksWithBets.length > 0 && (
-          <div className="flex overflow-x-auto border-b border-gray-700 px-2 gap-1 py-2">
+          <div className="flex overflow-x-auto border-b border-line px-2 gap-1 py-2">
             {booksWithBets.map((bookId) => {
               const book = getVenue(bookId);
               const count = bets.filter((b) => b.bookId === bookId).length;
@@ -84,20 +79,13 @@ export function Betslip() {
                   key={bookId}
                   onClick={() => setActiveTab(bookId)}
                   className={`
-                    flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap
-                    transition-colors text-sm font-medium
-                    ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+                    flex items-center gap-2 px-3 py-2 whitespace-nowrap
+                    text-[11px] uppercase tracking-[0.14em] font-medium border
+                    ${isActive ? 'bg-moss text-ink border-moss' : 'bg-transparent text-ink-dim border-line hover:text-ink'}
                   `}
                 >
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: book.color }}
-                  />
-                  {book.shortName}
-                  <span className={`
-                    px-1.5 py-0.5 rounded text-xs
-                    ${isActive ? 'bg-blue-500' : 'bg-gray-600'}
-                  `}>
+                  <span className="font-mono">{book.shortName}</span>
+                  <span className="font-mono text-[11px]">
                     {count}
                   </span>
                 </button>
@@ -106,22 +94,18 @@ export function Betslip() {
           </div>
         )}
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {bets.length === 0 ? (
-            <div className="text-center text-gray-400 py-12">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p className="text-lg mb-2">Your betslip is empty</p>
-              <p className="text-sm">Click on any odds to add a bet</p>
+            <div className="text-center text-ink-dim py-12">
+              <p className="uppercase tracking-[0.18em] text-[11px] mb-2">Your betslip is empty</p>
+              <p className="font-mono text-[11px]">Click on any odds to add a bet</p>
             </div>
           ) : activeBets.length === 0 ? (
-            <div className="text-center text-gray-400 py-12">
-              <p>Select a sportsbook tab</p>
+            <div className="text-center text-ink-dim py-12">
+              <p className="uppercase tracking-[0.18em] text-[11px]">Select a sportsbook tab</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {activeBets.map((bet) => (
                 <BetCard key={bet.id} bet={bet} />
               ))}
@@ -129,44 +113,37 @@ export function Betslip() {
           )}
         </div>
 
-        {/* Footer */}
         {activeTab && activeBets.length > 0 && (
-          <div className="p-4 border-t border-gray-700 bg-gray-800">
-            {/* Clear this book */}
+          <div className="p-4 border-t border-line bg-bg-2">
             <button
               onClick={() => clearBook(activeTab)}
-              className="text-sm text-gray-400 hover:text-red-400 mb-3 transition-colors"
+              className="text-[11px] uppercase tracking-[0.14em] text-ink-dim hover:text-bad mb-3"
             >
               Clear {getVenue(activeTab).name} bets
             </button>
 
-            {/* Totals */}
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-400">Total Stake</span>
-              <span className="text-white font-medium">${totalStake.toFixed(2)}</span>
+            <div className="flex justify-between text-[11px] uppercase tracking-[0.14em] mb-2">
+              <span className="text-ink-dim">Total Stake</span>
+              <span className="text-ink font-mono">${totalStake.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm mb-4">
-              <span className="text-gray-400">Potential Payout</span>
-              <span className="text-green-400 font-bold">${totalPayout.toFixed(2)}</span>
+            <div className="flex justify-between text-[11px] uppercase tracking-[0.14em] mb-4">
+              <span className="text-ink-dim">Potential Payout</span>
+              <span className="text-lichen font-mono">${totalPayout.toFixed(2)}</span>
             </div>
 
-            {/* Place bet button */}
             <button
               onClick={handlePlaceBet}
-              disabled={totalStake === 0}
+              disabled={totalStake === 0 || !getVenue(activeTab).deepLink}
               className={`
-                w-full py-3 rounded-lg font-bold text-white
-                transition-colors flex items-center justify-center gap-2
-                ${totalStake > 0
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gray-600 cursor-not-allowed'
+                w-full py-3 font-display font-semibold uppercase tracking-[0.14em] text-[11px]
+                border
+                ${totalStake > 0 && getVenue(activeTab).deepLink
+                  ? 'bg-moss hover:bg-moss-2 text-ink border-moss'
+                  : 'bg-transparent text-ink-dim border-line cursor-not-allowed'
                 }
               `}
             >
-              <span>Place Bets on {getVenue(activeTab).name}</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
+              Place Bets on {getVenue(activeTab).name}
             </button>
           </div>
         )}

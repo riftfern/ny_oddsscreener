@@ -24,37 +24,35 @@ const SKELETON_ROWS_PER_MARKET = 2;
 function Shimmer({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded bg-gray-700/50 ${className ?? ''}`}
+      className={`animate-pulse bg-line/60 ${className ?? ''}`}
     />
   );
 }
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-gray-700/60 bg-gray-800/70 shadow-lg overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-3.5 border-b border-gray-700/40 bg-gray-800/80">
+    <div className="border border-line bg-bg-2 overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-line">
         <div className="flex items-center justify-between">
           <Shimmer className="h-4 w-48" />
           <Shimmer className="h-3 w-28" />
         </div>
       </div>
 
-      {/* Table */}
       <div>
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-700/30">
-              <th className="px-5 py-2.5 w-24 text-left">
+            <tr className="border-b border-line">
+              <th className="px-4 py-2 w-24 text-left">
                 <Shimmer className="h-3 w-12" />
               </th>
               {DEFAULT_DISPLAYED_BOOKS.map((bookId) => (
-                <th key={bookId} className="px-1.5 py-2.5 w-20">
-                  <Shimmer className="h-5 w-10 mx-auto rounded-md" />
+                <th key={bookId} className="px-1 py-2 w-16">
+                  <Shimmer className="h-4 w-10 mx-auto" />
                 </th>
               ))}
-              <th className="px-1.5 py-2.5 w-20">
-                <Shimmer className="h-5 w-10 mx-auto rounded-md" />
+              <th className="px-1 py-2 w-16">
+                <Shimmer className="h-4 w-10 mx-auto" />
               </th>
             </tr>
           </thead>
@@ -65,22 +63,22 @@ function SkeletonCard() {
                   key={`${mIdx}-${rIdx}`}
                   className={
                     rIdx === SKELETON_ROWS_PER_MARKET - 1 && mIdx < SKELETON_MARKETS - 1
-                      ? 'border-b border-gray-700/30'
+                      ? 'border-b border-line'
                       : ''
                   }
                 >
                   {rIdx === 0 && (
-                    <td rowSpan={SKELETON_ROWS_PER_MARKET} className="px-5 py-2 align-middle">
+                    <td rowSpan={SKELETON_ROWS_PER_MARKET} className="px-4 py-2 align-middle">
                       <Shimmer className="h-3.5 w-16" />
                     </td>
                   )}
                   {DEFAULT_DISPLAYED_BOOKS.map((bookId) => (
-                    <td key={bookId} className="px-1.5 py-1.5 text-center">
-                      <Shimmer className="h-8 w-full rounded-lg" />
+                    <td key={bookId} className="px-1 py-1 text-center">
+                      <Shimmer className="h-7 w-full" />
                     </td>
                   ))}
-                  <td className="px-1.5 py-1.5 text-center">
-                    <Shimmer className="h-8 w-14 mx-auto rounded-lg" />
+                  <td className="px-1 py-1 text-center">
+                    <Shimmer className="h-7 w-12 mx-auto" />
                   </td>
                 </tr>
               ))
@@ -94,7 +92,7 @@ function SkeletonCard() {
 
 export function OddsGridSkeleton() {
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {Array.from({ length: SKELETON_CARDS }).map((_, i) => (
         <SkeletonCard key={i} />
       ))}
@@ -104,9 +102,6 @@ export function OddsGridSkeleton() {
 
 export default function OddsGrid({ events, displayedBooks: displayedBooksProp }: OddsGridProps) {
   const { filter } = useOddsStore();
-  // Exchanges page passes its own book list — use it as-is.
-  // Odds page defaults include Pinnacle (the fair-line column) even when the
-  // book filter is the legacy NY retail list.
   const displayedBooks = displayedBooksProp
     ? displayedBooksProp
     : DEFAULT_DISPLAYED_BOOKS.filter(
@@ -114,7 +109,7 @@ export default function OddsGrid({ events, displayedBooks: displayedBooksProp }:
       );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {events.map((event) => (
         <EventCard key={event.id} event={event} displayedBooks={displayedBooks} />
       ))}
@@ -143,48 +138,44 @@ function EventCard({ event, displayedBooks }: EventCardProps) {
       : event.markets.filter((m) => m.type === filter.marketType);
 
   return (
-    <div className="rounded-xl border border-gray-700/60 bg-gray-800/70 shadow-lg overflow-hidden backdrop-blur-sm">
-      {/* Event Header */}
-      <div className="px-5 py-3.5 border-b border-gray-700/40 bg-gray-800/80">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-[15px] text-white tracking-tight">
+    <div className="border border-line bg-bg-2 overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-line">
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="font-display font-semibold text-[15px] text-ink tracking-tight">
             {event.awayTeam}
-            <span className="mx-2 text-gray-500 font-normal text-sm">@</span>
+            <span className="mx-2 text-ink-dim font-normal text-sm">@</span>
             {event.homeTeam}
           </h3>
-          <span className="text-xs text-gray-400 tabular-nums">{gameTime}</span>
+          <span className="font-mono text-[11px] text-ink-dim tabular-nums">{gameTime}</span>
         </div>
       </div>
 
-      {/* Odds Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-700/30">
-              <th className="text-left px-5 py-2.5 w-24">
-                <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">
+            <tr className="border-b border-line">
+              <th className="text-left px-4 py-2 w-24">
+                <span className="label">
                   Market
                 </span>
               </th>
               {displayedBooks.map((bookId) => {
                 const book = getVenue(bookId);
+                const isPin = bookId === 'pinnacle';
                 return (
-                  <th key={bookId} className="px-1.5 py-2.5 w-20">
+                  <th key={bookId} className="px-1 py-2 w-16">
                     <span
-                      className="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-[11px] font-semibold tracking-wide"
-                      style={{
-                        backgroundColor: `${book.color}18`,
-                        color: book.color,
-                        border: `1px solid ${book.color}30`,
-                      }}
+                      className={`inline-flex items-center justify-center px-1.5 py-0.5 font-mono text-[11px] tracking-wide ${
+                        isPin ? 'text-pin border border-pin' : 'text-ink-dim'
+                      }`}
                     >
                       {book.shortName}
                     </span>
                   </th>
                 );
               })}
-              <th className="px-1.5 py-2.5 w-20">
-                <span className="inline-flex items-center justify-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-400 tracking-wide">
+              <th className="px-1 py-2 w-16">
+                <span className="inline-flex items-center justify-center px-1.5 py-0.5 font-mono text-[11px] text-lichen border border-lichen tracking-wide">
                   Best
                 </span>
               </th>
@@ -225,28 +216,23 @@ function MarketRows({ event, marketType, outcomes, displayedBooks, isLast }: Mar
       {outcomes.map((outcome, idx) => (
         <tr
           key={`${marketType}-${idx}`}
-          className={`
-            transition-colors hover:bg-white/[0.02]
-            ${idx === outcomes.length - 1 && !isLast ? 'border-b border-gray-700/30' : ''}
-          `}
+          className={idx === outcomes.length - 1 && !isLast ? 'border-b border-line' : ''}
         >
-          {/* Market label on first row */}
           {idx === 0 ? (
             <td
               rowSpan={outcomes.length}
-              className="px-5 py-2 text-[13px] font-medium text-gray-400 align-middle"
+              className="px-4 py-1.5 text-[11px] uppercase tracking-[0.14em] text-ink-dim align-middle"
             >
               {marketLabel}
             </td>
           ) : null}
 
-          {/* Odds for each book */}
           {displayedBooks.map((bookId) => {
             const bookOdd = outcome.bookOdds.find((bo) => bo.bookId === bookId);
             const isBest = outcome.bestOdds?.bookId === bookId;
 
             return (
-              <td key={bookId} className="px-1.5 py-1.5 text-center">
+              <td key={bookId} className="px-1 py-1 text-center">
                 {bookOdd ? (
                   <OddsCell
                     event={event}
@@ -255,25 +241,22 @@ function MarketRows({ event, marketType, outcomes, displayedBooks, isLast }: Mar
                     odds={bookOdd}
                     isBest={isBest}
                     showLine={marketType !== 'h2h'}
+                    isPin={bookId === 'pinnacle'}
                   />
                 ) : (
-                  <span className="text-gray-600 text-sm">-</span>
+                  <span className="text-ink-dim/50 font-mono text-sm">-</span>
                 )}
               </td>
             );
           })}
 
-          {/* Best odds column */}
-          <td className="px-1.5 py-1.5 text-center">
+          <td className="px-1 py-1 text-center">
             {outcome.bestOdds && (
-              <div className="inline-flex flex-col items-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 min-w-[56px]">
-                <span className="text-sm font-bold text-emerald-400 tabular-nums">
+              <div className="inline-flex flex-col items-center border border-lichen px-2 py-1 min-w-[52px]">
+                <span className="text-sm font-medium text-lichen font-mono tabular-nums">
                   {formatAmerican(outcome.bestOdds.odds)}
                 </span>
-                <span
-                  className="text-[10px] font-medium mt-0.5"
-                  style={{ color: getVenue(outcome.bestOdds.bookId).color }}
-                >
+                <span className="font-mono text-[10px] text-ink-dim mt-0.5">
                   {getVenue(outcome.bestOdds.bookId).shortName}
                 </span>
               </div>
@@ -292,9 +275,10 @@ interface OddsCellProps {
   odds: BookOdds;
   isBest: boolean;
   showLine: boolean;
+  isPin: boolean;
 }
 
-function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine }: OddsCellProps) {
+function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine, isPin }: OddsCellProps) {
   const addBet = useBetslipStore((state) => state.addBet);
   const bets = useBetslipStore((state) => state.bets);
 
@@ -324,30 +308,25 @@ function OddsCell({ event, marketType, outcomeName, odds, isBest, showLine }: Od
       type="button"
       onClick={handleClick}
       className={`
-        group relative rounded-lg px-2 py-1.5 w-full text-center
-        transition-all duration-150 ease-out
-        ${
-          isBest
-            ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20'
-            : 'hover:bg-gray-700/50'
-        }
-        ${isInSlip ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''}
+        group relative px-1.5 py-1 w-full text-center border
+        ${isPin ? 'border-pin' : isBest ? 'border-lichen' : 'border-transparent hover:border-line'}
+        ${isInSlip ? 'border-moss bg-moss/20' : ''}
       `}
     >
       {showLine && odds.line !== undefined && (
-        <div className="text-[11px] text-gray-500 leading-tight">
+        <div className="font-mono text-[11px] text-ink-dim leading-tight">
           {odds.line > 0 ? `+${odds.line}` : odds.line}
         </div>
       )}
       <span
         className={`
-          text-sm font-semibold tabular-nums
-          ${isBest ? 'text-emerald-400' : isPositive ? 'text-emerald-400' : 'text-gray-200'}
+          text-sm font-medium font-mono tabular-nums
+          ${isBest ? 'text-lichen' : isPositive ? 'text-lichen' : 'text-ink'}
         `}
       >
         {formattedOdds}
       </span>
-      {isInSlip && <div className="text-[10px] text-blue-400 font-medium mt-0.5">Added</div>}
+      {isInSlip && <div className="font-mono text-[10px] text-moss-2 mt-0.5">Added</div>}
     </button>
   );
 }

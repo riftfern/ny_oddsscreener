@@ -24,7 +24,7 @@ export default function SportSelector({ sharpCoverage }: SportSelectorProps) {
     sharpCoverage.eventsWithSharp === 0;
 
   return (
-    <div className="flex space-x-2">
+    <div className="flex flex-wrap gap-1">
       {sports.map((sportKey) => {
         const sport = SPORT_INFO[sportKey];
         const isActive = filter.sport === sportKey;
@@ -35,16 +35,16 @@ export default function SportSelector({ sharpCoverage }: SportSelectorProps) {
             key={sportKey}
             onClick={() => setSport(sportKey)}
             title={showHint ? 'No sharp line available for this sport right now' : undefined}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
               isActive
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                ? 'bg-moss text-ink border-moss'
+                : 'bg-transparent text-ink-dim border-line hover:border-moss hover:text-ink'
             }`}
           >
             <span className="flex items-center gap-1.5">
               {sport.shortName}
               {showHint && (
-                <span className="h-2 w-2 rounded-full bg-yellow-400" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 bg-warn" aria-hidden="true" />
               )}
             </span>
           </button>

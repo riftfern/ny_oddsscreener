@@ -37,19 +37,19 @@ export default function UpgradeCard({
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-12 rounded-xl border border-gray-700 bg-gray-800/70 p-8 text-center">
-      <h2 className="text-2xl font-bold text-white">{title}</h2>
-      <p className="mt-2 text-gray-400">{copy.description}</p>
+    <div className="max-w-xl mx-auto mt-12 border border-line bg-bg-2 p-8 text-center">
+      <h2 className="font-display font-bold text-ink tracking-tight text-2xl">{title}</h2>
+      <p className="mt-2 text-ink-dim font-mono text-sm">{copy.description}</p>
       <div className="mt-6">
-        <p className="text-3xl font-bold text-white">
+        <p className="text-3xl font-mono font-medium text-ink">
           {copy.price}
         </p>
-        <p className="text-sm text-gray-500">Cancel anytime</p>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-ink-dim mt-1">Cancel anytime</p>
       </div>
       <button
         type="button"
         onClick={handleUpgrade}
-        className="mt-6 inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+        className="mt-6 inline-block bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
       >
         Upgrade to {copy.name}
       </button>
