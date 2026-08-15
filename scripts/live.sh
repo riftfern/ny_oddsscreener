@@ -6,5 +6,6 @@ set -e
 export REQUIRE_AUTH=false
 export DEV_PLAN=pro
 export VITE_DEV_PLAN=pro
-# dotenv in the API process still wins for USE_MOCK_DATA / THE_ODDS_API_KEY.
+# Goes through turbo + apps/api/.env. Set USE_MOCK_DATA=false there.
+# For mock without burning credits, use `pnpm demo` instead.
 pnpm dev

@@ -80,7 +80,8 @@ app.listen(PORT, () => {
     POST /api/billing/webhook   - Stripe webhook
     POST /api/billing/portal    - Stripe Customer Portal
 
-  Note: Using mock data by default. Add ?live=true for real API data.
+  Data: ${process.env.USE_MOCK_DATA === 'true' ? 'MOCK (no Odds API)' : 'LIVE'}
+    Auth: ${process.env.REQUIRE_AUTH === 'true' ? 'on' : 'off'}
   `);
 
   // Start Pro alert poller after the HTTP server is listening.

@@ -26,6 +26,8 @@ pnpm demo
 - Web: http://localhost:3000
 - API: http://localhost:3001
 
+`pnpm demo` starts API + web directly with `USE_MOCK_DATA=true`. It does not go through `turbo run dev`, so a live `apps/api/.env` cannot flip you back onto The Odds API.
+
 ## Run against The Odds API (live)
 
 Put your key in `apps/api/.env` and set `USE_MOCK_DATA=false`. Then:
@@ -46,7 +48,7 @@ Pinnacle lives in region `eu`. It is present on MLB and some NFL events right no
 pnpm demo
 ```
 
-This forces mock data so you can record a Loom without burning credits. Open `/`, `/app`, `/app/ev`, `/app/arb`, `/app/exchanges`, and `/legal`.
+This forces mock data so you can record a Loom without burning credits. Open `/`, `/app`, `/app/ev`, `/app/exchanges`, and `/legal`.
 
 ## Configure Clerk and Stripe
 
