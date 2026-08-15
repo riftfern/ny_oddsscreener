@@ -14,6 +14,9 @@ function useMockData(): boolean {
 export interface OddsResponse {
   events: Event[];
   lastUpdated: string;
+  cachedAt: string;
+  stale?: boolean;
+  remainingCredits?: number;
 }
 
 export interface EVResponse {
@@ -22,6 +25,9 @@ export interface EVResponse {
   scannedEvents: number;
   minEV: number;
   lastUpdated: string;
+  cachedAt: string;
+  stale?: boolean;
+  remainingCredits?: number;
 }
 
 export interface ArbitrageResponse {
@@ -31,6 +37,15 @@ export interface ArbitrageResponse {
   minProfit: number;
   totalStake: number;
   lastUpdated: string;
+  cachedAt: string;
+  stale?: boolean;
+  remainingCredits?: number;
+}
+
+let lastRemainingCredits: number | undefined;
+
+export function getLastRemainingCredits(): number | undefined {
+  return lastRemainingCredits;
 }
 
 function getApiKey(): string | undefined {
@@ -196,18 +211,46 @@ export interface FetchOddsOptions {
   useCache?: boolean;
 }
 
+export interface FetchOddsResult {
+  events: Event[];
+  cachedAt: string;
+  stale?: boolean;
+}
+
 // One cache per sport+params shape. TTL from env (default 45s).
-const oddsCache = new OddsCache<Event[]>(defaultTtlMs());
+const oddsCache = new OddsCache<Event[]>(() => defaultTtlMs());
 
 /** Test helper: clear the in-process odds cache between cases. */
 export function clearOddsCache(): void {
   oddsCache.clear();
 }
 
-export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {}): Promise<Event[]> {
+function recordRemainingCredits(response: Response): void {
+  const remaining = response.headers.get('x-requests-remaining');
+  if (remaining) {
+    const parsed = parseInt(remaining, 10);
+    if (Number.isFinite(parsed)) lastRemainingCredits = parsed;
+  }
+}
+
+async function tryStaleFallback(cacheKey: string): Promise<FetchOddsResult | undefined> {
+  const stale = oddsCache.getStale(cacheKey);
+  if (!stale) return undefined;
+  console.warn(`[cache] stale fallback for ${cacheKey}`);
+  return {
+    events: stale.value,
+    cachedAt: new Date(stale.cachedAt).toISOString(),
+    stale: true,
+  };
+}
+
+export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {}): Promise<FetchOddsResult> {
   if (useMockData()) {
     console.log(`[mock] Returning mock events for ${sport}`);
-    return getMockEvents(sport);
+    return {
+      events: getMockEvents(sport),
+      cachedAt: new Date().toISOString(),
+    };
   }
 
   const apiKey = getApiKey();
@@ -224,7 +267,7 @@ export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {})
     const cached = oddsCache.get(cacheKey);
     if (cached) {
       console.log(`[cache] hit ${cacheKey}`);
-      return cached;
+      return { events: cached, cachedAt: new Date().toISOString() };
     }
   }
 
@@ -239,46 +282,67 @@ export async function fetchOdds(sport: SportKey, options: FetchOddsOptions = {})
 
   console.log(`Fetching odds for ${sport} (regions: ${regions.join(',')})...`);
 
-  const response = await fetch(url.toString());
+  try {
+    const response = await fetch(url.toString());
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`API Error: ${response.status} - ${errorText}`);
-    throw new Error(`The Odds API error: ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API Error: ${response.status} - ${errorText}`);
+      const stale = await tryStaleFallback(cacheKey);
+      if (stale) return stale;
+      throw new Error(`The Odds API error: ${response.status}`);
+    }
+
+    recordRemainingCredits(response);
+    const used = response.headers.get('x-requests-used');
+    console.log(`API Requests - Used: ${used}, Remaining: ${lastRemainingCredits ?? 'unknown'}`);
+
+    const data: OddsApiEvent[] = await response.json();
+    const events = data.map(transformToEvent);
+
+    if (useCache) {
+      oddsCache.set(cacheKey, events);
+    }
+
+    return { events, cachedAt: new Date().toISOString() };
+  } catch (err) {
+    const stale = await tryStaleFallback(cacheKey);
+    if (stale) return stale;
+    throw err;
   }
-
-  // Log remaining requests
-  const remaining = response.headers.get('x-requests-remaining');
-  const used = response.headers.get('x-requests-used');
-  console.log(`API Requests - Used: ${used}, Remaining: ${remaining}`);
-
-  const data: OddsApiEvent[] = await response.json();
-  const events = data.map(transformToEvent);
-
-  if (useCache) {
-    oddsCache.set(cacheKey, events);
-  }
-
-  return events;
 }
 
-export async function fetchExchangeOdds(sport: SportKey): Promise<Event[]> {
+function mergeFetchResults(results: FetchOddsResult[]): FetchOddsResult {
+  const events = results.flatMap((r) => r.events);
+  const stale = results.some((r) => r.stale);
+  const timestamps = results.map((r) => new Date(r.cachedAt).getTime()).sort((a, b) => a - b);
+  const cachedAt = new Date(stale ? timestamps[0] : timestamps[timestamps.length - 1]).toISOString();
+  return { events, cachedAt, stale };
+}
+
+export async function fetchExchangeOdds(sport: SportKey): Promise<FetchOddsResult> {
   return fetchOdds(sport, { regions: exchangeRegions() });
 }
 
 export async function fetchExchangeOddsResponse(sport: SportKey): Promise<OddsResponse> {
-  const events = await fetchExchangeOdds(sport);
+  const result = await fetchExchangeOdds(sport);
   return {
-    events,
+    events: result.events,
     lastUpdated: new Date().toISOString(),
+    cachedAt: result.cachedAt,
+    stale: result.stale,
+    remainingCredits: getLastRemainingCredits(),
   };
 }
 
 export async function fetchOddsResponse(sport: SportKey): Promise<OddsResponse> {
-  const events = await fetchOdds(sport);
+  const result = await fetchOdds(sport);
   return {
-    events,
+    events: result.events,
     lastUpdated: new Date().toISOString(),
+    cachedAt: result.cachedAt,
+    stale: result.stale,
+    remainingCredits: getLastRemainingCredits(),
   };
 }
 
@@ -298,6 +362,7 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number 
       scannedEvents: mockEvents.length,
       minEV,
       lastUpdated: new Date().toISOString(),
+      cachedAt: new Date().toISOString(),
     };
   }
 
@@ -305,23 +370,27 @@ export async function fetchEVResponse(options: { sport?: string; minEV?: number 
     ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
     : [sport as SportKey];
 
-  const allEvents: Event[] = [];
+  const results: FetchOddsResult[] = [];
   for (const s of sportsToScan) {
     try {
-      const events = await fetchOdds(s);
-      allEvents.push(...events);
+      const result = await fetchOdds(s);
+      results.push(result);
     } catch (err) {
       console.error(`Failed to fetch ${s}:`, err);
     }
   }
 
-  const opportunities = findEVOpportunities(allEvents, { minEV });
+  const merged = mergeFetchResults(results);
+  const opportunities = findEVOpportunities(merged.events, { minEV });
   return {
     opportunities,
     count: opportunities.length,
-    scannedEvents: allEvents.length,
+    scannedEvents: merged.events.length,
     minEV,
     lastUpdated: new Date().toISOString(),
+    cachedAt: merged.cachedAt,
+    stale: merged.stale,
+    remainingCredits: getLastRemainingCredits(),
   };
 }
 
@@ -342,6 +411,7 @@ export async function fetchArbitrageResponse(options: { sport?: string; minProfi
       minProfit,
       totalStake,
       lastUpdated: new Date().toISOString(),
+      cachedAt: new Date().toISOString(),
     };
   }
 
@@ -349,24 +419,28 @@ export async function fetchArbitrageResponse(options: { sport?: string; minProfi
     ? [SPORTS.NFL, SPORTS.NBA, SPORTS.NHL, SPORTS.MLB]
     : [sport as SportKey];
 
-  const allEvents: Event[] = [];
+  const results: FetchOddsResult[] = [];
   for (const s of sportsToScan) {
     try {
-      const events = await fetchOdds(s);
-      allEvents.push(...events);
+      const result = await fetchOdds(s);
+      results.push(result);
     } catch (err) {
       console.error(`Failed to fetch ${s}:`, err);
     }
   }
 
-  const opportunities = findArbitrageOpportunities(allEvents, { minProfit, totalStake });
+  const merged = mergeFetchResults(results);
+  const opportunities = findArbitrageOpportunities(merged.events, { minProfit, totalStake });
   return {
     opportunities,
     count: opportunities.length,
-    scannedEvents: allEvents.length,
+    scannedEvents: merged.events.length,
     minProfit,
     totalStake,
     lastUpdated: new Date().toISOString(),
+    cachedAt: merged.cachedAt,
+    stale: merged.stale,
+    remainingCredits: getLastRemainingCredits(),
   };
 }
 

@@ -4,6 +4,9 @@ import SportSelector from '@/components/odds/SportSelector';
 import OddsGrid, { OddsGridSkeleton } from '@/components/odds/OddsGrid';
 import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
+import StaleBanner from '@/components/common/StaleBanner';
+import DebugFooter from '@/components/common/DebugFooter';
+import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 import { VENUES, SPORT_INFO, type Event, type VenueKind } from '@ny-sharp-edge/shared';
 
@@ -42,6 +45,7 @@ function filterExchangeEvents(events: Event[]): Event[] {
 export default function ExchangesPage() {
   const { filter } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useExchangeOdds(filter.sport);
+  const debug = useDebugMode();
 
   const sportName = SPORT_INFO[filter.sport].name;
   const exchangeEvents = data ? filterExchangeEvents(data.events) : [];
@@ -76,6 +80,8 @@ export default function ExchangesPage() {
         <SportSelector />
       </div>
 
+      {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+
       {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
@@ -104,6 +110,13 @@ export default function ExchangesPage() {
 
       {!isLoading && !error && exchangeEvents.length > 0 && (
         <OddsGrid events={exchangeEvents} displayedBooks={EXCHANGE_BOOK_IDS} />
+      )}
+
+      {debug && (
+        <DebugFooter
+          cachedAt={data?.cachedAt}
+          remainingCredits={data?.remainingCredits}
+        />
       )}
     </div>
     </PlanGate>

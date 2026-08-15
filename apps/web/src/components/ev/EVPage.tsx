@@ -3,6 +3,9 @@ import { useEVOpportunities } from '@/hooks/useOdds';
 import EVOpportunityCard from './EVOpportunityCard';
 import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
+import StaleBanner from '@/components/common/StaleBanner';
+import DebugFooter from '@/components/common/DebugFooter';
+import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 
 const MIN_EV_OPTIONS = [0.5, 1, 2, 3, 5];
@@ -10,6 +13,7 @@ const MIN_EV_OPTIONS = [0.5, 1, 2, 3, 5];
 export default function EVPage() {
   const [minEV, setMinEV] = useState(1);
   const { data, isLoading, error, dataUpdatedAt } = useEVOpportunities(minEV);
+  const debug = useDebugMode();
 
   return (
     <PlanGate requiredPlan="edge">
@@ -64,6 +68,8 @@ export default function EVPage() {
         )}
       </div>
 
+      {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+
       {/* Content */}
       {isLoading && (
         <div className="text-center py-12">
@@ -114,6 +120,13 @@ export default function EVPage() {
           <li>Higher EV% = larger edge, but opportunities may be limited or move quickly</li>
         </ul>
       </div>
+
+      {debug && (
+        <DebugFooter
+          cachedAt={data?.cachedAt}
+          remainingCredits={data?.remainingCredits}
+        />
+      )}
     </div>
     </PlanGate>
   );

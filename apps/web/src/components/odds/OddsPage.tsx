@@ -4,12 +4,16 @@ import SportSelector from './SportSelector';
 import OddsGrid, { OddsGridSkeleton } from './OddsGrid';
 import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
+import StaleBanner from '@/components/common/StaleBanner';
+import DebugFooter from '@/components/common/DebugFooter';
+import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 import { SPORT_INFO, type MarketType } from '@ny-sharp-edge/shared';
 
 export default function OddsPage() {
   const { filter, setMarketType } = useOddsStore();
   const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
+  const debug = useDebugMode();
 
   const sportName = SPORT_INFO[filter.sport].name;
 
@@ -68,6 +72,8 @@ export default function OddsPage() {
         </div>
       </div>
 
+      {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+
       {/* Content */}
       {isLoading && <OddsGridSkeleton />}
 
@@ -93,6 +99,13 @@ export default function OddsPage() {
       )}
 
       {data && data.events.length > 0 && <OddsGrid events={data.events} />}
+
+      {debug && (
+        <DebugFooter
+          cachedAt={data?.cachedAt}
+          remainingCredits={data?.remainingCredits}
+        />
+      )}
     </div>
     </PlanGate>
   );

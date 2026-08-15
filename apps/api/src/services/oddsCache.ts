@@ -10,28 +10,53 @@
  * and is not shared across instances. That is fine for a single long-lived Node
  * box (the intended production host per the plan); do not rely on it on Vercel.
  */
-interface CacheEntry<T> {
+export interface CacheEntry<T> {
   value: T;
   expiresAt: number;
+  cachedAt: number;
+}
+
+export interface StaleCacheEntry<T> {
+  value: T;
+  cachedAt: number;
+  stale: true;
 }
 
 export class OddsCache<T> {
   private store = new Map<string, CacheEntry<T>>();
+  private readonly ttlMs: () => number;
 
-  constructor(private readonly ttlMs: number = 45_000) {}
+  constructor(ttlMs: number | (() => number) = 45_000) {
+    this.ttlMs = typeof ttlMs === 'function' ? ttlMs : () => ttlMs;
+  }
 
   get(key: string): T | undefined {
     const entry = this.store.get(key);
     if (!entry) return undefined;
     if (Date.now() > entry.expiresAt) {
-      this.store.delete(key);
+      // Keep the entry around for stale fallback; do not delete on expiry.
       return undefined;
     }
     return entry.value;
   }
 
+  /** Return the last cached value even if TTL has expired. */
+  getStale(key: string): StaleCacheEntry<T> | undefined {
+    const entry = this.store.get(key);
+    if (!entry) return undefined;
+    return { value: entry.value, cachedAt: entry.cachedAt, stale: true };
+  }
+
+  /** Peek metadata for the last cached value without returning the payload. */
+  peekLast(key: string): { cachedAt: number; expired: boolean } | undefined {
+    const entry = this.store.get(key);
+    if (!entry) return undefined;
+    return { cachedAt: entry.cachedAt, expired: Date.now() > entry.expiresAt };
+  }
+
   set(key: string, value: T): void {
-    this.store.set(key, { value, expiresAt: Date.now() + this.ttlMs });
+    const now = Date.now();
+    this.store.set(key, { value, expiresAt: now + this.ttlMs(), cachedAt: now });
   }
 
   /** Calls the loader only on a cache miss; serves fresh entries inside TTL. */

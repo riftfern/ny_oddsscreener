@@ -3,6 +3,9 @@ import { useArbitrageOpportunities } from '@/hooks/useOdds';
 import ArbitrageOpportunityCard from './ArbitrageOpportunityCard';
 import PlanGate from '@/components/auth/PlanGate';
 import UpgradeCard from '@/components/auth/UpgradeCard';
+import StaleBanner from '@/components/common/StaleBanner';
+import DebugFooter from '@/components/common/DebugFooter';
+import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
 
 const MIN_PROFIT_OPTIONS = [0.1, 0.5, 1, 2, 3];
@@ -12,6 +15,7 @@ export default function ArbitragePage() {
   const [minProfit, setMinProfit] = useState(0.5);
   const [totalStake, setTotalStake] = useState(100);
   const { data, isLoading, error, dataUpdatedAt } = useArbitrageOpportunities(minProfit, totalStake);
+  const debug = useDebugMode();
 
   return (
     <PlanGate requiredPlan="pro">
@@ -85,6 +89,8 @@ export default function ArbitragePage() {
         )}
       </div>
 
+      {data?.stale && <StaleBanner cachedAt={data.cachedAt} />}
+
       {/* Content */}
       {isLoading && (
         <div className="text-center py-12">
@@ -135,6 +141,13 @@ export default function ArbitragePage() {
           <li>Higher profit% = larger guaranteed return, but these are extremely rare</li>
         </ul>
       </div>
+
+      {debug && (
+        <DebugFooter
+          cachedAt={data?.cachedAt}
+          remainingCredits={data?.remainingCredits}
+        />
+      )}
     </div>
     </PlanGate>
   );

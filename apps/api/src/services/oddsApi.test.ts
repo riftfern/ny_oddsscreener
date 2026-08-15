@@ -80,9 +80,9 @@ describe('oddsApi fetchOdds', () => {
   it('keeps both FanDuel and Pinnacle books in the transformed event', async () => {
     fetchMock.mockResolvedValue(jsonResponse(makeOddsApiPayload()));
 
-    const events = await fetchOdds('basketball_nba');
-    expect(events).toHaveLength(1);
-    const event = events[0];
+    const result = await fetchOdds('basketball_nba');
+    expect(result.events).toHaveLength(1);
+    const event = result.events[0];
 
     const h2h = event.markets.find((m) => m.type === 'h2h');
     expect(h2h).toBeDefined();
@@ -95,13 +95,33 @@ describe('oddsApi fetchOdds', () => {
     fetchMock.mockResolvedValue(jsonResponse(makeOddsApiPayload()));
 
     const first = await fetchOdds('basketball_nba');
-    expect(first).toHaveLength(1);
+    expect(first.events).toHaveLength(1);
 
     const second = await fetchOdds('basketball_nba');
-    expect(second).toHaveLength(1);
+    expect(second.events).toHaveLength(1);
 
     // Two calls to fetchOdds, but the underlying HTTP fetch should fire only once.
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns stale last-good data when a live fetch fails', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    process.env.ODDS_CACHE_TTL_MS = '1';
+    fetchMock.mockResolvedValueOnce(jsonResponse(makeOddsApiPayload()));
+    fetchMock.mockRejectedValueOnce(new Error('network down'));
+
+    const first = await fetchOdds('basketball_nba');
+    expect(first.events).toHaveLength(1);
+    expect(first.stale).toBeUndefined();
+
+    // Expire the cache entry so the next call attempts a live fetch.
+    vi.advanceTimersByTime(2);
+
+    const second = await fetchOdds('basketball_nba');
+    expect(second.events).toHaveLength(1);
+    expect(second.stale).toBe(true);
+
+    vi.useRealTimers();
   });
 });
 
@@ -142,6 +162,7 @@ describe('oddsApi fetchExchangeOdds', () => {
     const response = await fetchExchangeOddsResponse('basketball_nba');
     expect(response.events).toHaveLength(1);
     expect(response.lastUpdated).toBeDefined();
+    expect(response.cachedAt).toBeDefined();
   });
 });
 

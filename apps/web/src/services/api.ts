@@ -42,6 +42,9 @@ async function fetchJson<T>(url: string): Promise<T> {
 export interface OddsResponse {
   events: Event[];
   lastUpdated: string;
+  cachedAt: string;
+  stale?: boolean;
+  remainingCredits?: number;
 }
 
 export interface EVResponse {
@@ -50,6 +53,9 @@ export interface EVResponse {
   scannedEvents: number;
   minEV: number;
   lastUpdated: string;
+  cachedAt: string;
+  stale?: boolean;
+  remainingCredits?: number;
 }
 
 export interface ArbitrageResponse {
@@ -59,6 +65,9 @@ export interface ArbitrageResponse {
   minProfit: number;
   totalStake: number;
   lastUpdated: string;
+  cachedAt: string;
+  stale?: boolean;
+  remainingCredits?: number;
 }
 
 export const api = {
