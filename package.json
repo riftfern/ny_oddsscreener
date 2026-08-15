@@ -5,6 +5,7 @@
   "description": "NY Sportsbook Odds Screener - +EV betting tool for NY legal sportsbooks",
   "scripts": {
     "dev": "turbo run dev",
+    "demo": "./scripts/demo.sh",
     "build": "turbo run build",
     "build:web": "cd apps/web && pnpm run build",
     "vercel-build": "pnpm run build:web",

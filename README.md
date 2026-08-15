@@ -24,6 +24,14 @@ USE_MOCK_DATA=true REQUIRE_AUTH=false DEV_PLAN=pro pnpm dev
 - Web: http://localhost:3000
 - API: http://localhost:3001
 
+## Record a demo
+
+```bash
+pnpm demo
+```
+
+This runs the app on mock data so you can record a Loom without burning The Odds API credits. Open `/`, `/app`, `/app/ev`, `/app/arb`, `/app/exchanges`, and `/legal` in order. Stay on mock data for the recording.
+
 ## Configure Clerk and Stripe
 
 Copy the example env files:
