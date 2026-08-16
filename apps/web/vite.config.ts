@@ -13,6 +13,9 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
+  optimizeDeps: {
+    exclude: ['@ny-sharp-edge/shared'],
+  },
   server: {
     port: 3000,
     // Reachable from a phone on the same Wi‑Fi (localhost is laptop-only).
