@@ -7,9 +7,9 @@ import { useCheckout } from '@/hooks/useCheckout';
 import AuthControls from '@/components/auth/AuthControls';
 
 const BULLETS = [
-  '+EV vs Pinnacle',
-  'Arbitrage scanner',
-  'Exchange screen (Kalshi + Polymarket)',
+  'Best price at your books',
+  'Ticket ideas — parlays and round robins, not locks',
+  'Edges when a number is actually fat',
 ];
 
 const requireAuth = import.meta.env.VITE_REQUIRE_AUTH === 'true';

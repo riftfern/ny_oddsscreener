@@ -45,7 +45,7 @@ export default function LegalPage() {
           <section>
             <h2 className="font-display font-semibold text-ink text-xl mb-2">You can lose money</h2>
             <p>
-              Sports betting involves risk. Past +EV or arbitrage examples are not a guarantee of
+              Sports betting involves risk. Past +EV examples and ticket ideas are not a guarantee of
               future results. Only bet what you can afford to lose.
             </p>
           </section>
@@ -67,11 +67,11 @@ export default function LegalPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-ink text-xl mb-2">Arbitrage disclaimer</h2>
+            <h2 className="font-display font-semibold text-ink text-xl mb-2">Ticket ideas</h2>
             <p>
-              Arbitrage opportunities shown are theoretical. Both legs must clear at the displayed
-              price for the calculated profit to realize. If one line moves or a bet is rejected,
-              the arb may result in a loss.
+              Parlays, same-game stacks, and round robins are ticket shapes, not edges. Combined
+              payouts are illustrations if every leg cashes at the displayed price. Lines move.
+              Extra juice applies. We do not place bets.
             </p>
           </section>
 

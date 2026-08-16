@@ -48,7 +48,7 @@ Pinnacle lives in region `eu`. It is present on MLB and some NFL events right no
 pnpm demo
 ```
 
-This forces mock data so you can record a Loom without burning credits. Open `/`, `/app`, `/app/ev`, `/app/exchanges`, and `/legal`.
+This forces mock data so you can record a Loom without burning credits. Open `/`, `/app`, `/app/ev`, `/app/tickets`, `/app/exchanges`, and `/legal`.
 
 ## Configure Clerk and Stripe
 

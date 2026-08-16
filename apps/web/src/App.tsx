@@ -5,9 +5,9 @@ import LandingPage from '@/components/marketing/LandingPage';
 import LegalPage from '@/components/marketing/LegalPage';
 import OddsPage from '@/components/odds/OddsPage';
 import EVPage from '@/components/ev/EVPage';
-import ArbitragePage from '@/components/arb/ArbitragePage';
 import ExchangesPage from '@/components/exchanges/ExchangesPage';
 import SettingsPage from '@/components/settings/SettingsPage';
+import TicketsPage from '@/components/tickets/TicketsPage';
 
 function App() {
   return (
@@ -31,14 +31,15 @@ function App() {
           >
             <Route index element={<OddsPage />} />
             <Route path="ev" element={<EVPage />} />
-            <Route path="arb" element={<ArbitragePage />} />
+            <Route path="tickets" element={<TicketsPage />} />
+            <Route path="arb" element={<Navigate to="/app/tickets" replace />} />
             <Route path="exchanges" element={<ExchangesPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 
           {/* Redirects for old bookmarks */}
           <Route path="/ev" element={<Navigate to="/app/ev" replace />} />
-          <Route path="/arb" element={<Navigate to="/app/arb" replace />} />
+          <Route path="/arb" element={<Navigate to="/app/tickets" replace />} />
           <Route path="/exchanges" element={<Navigate to="/app/exchanges" replace />} />
         </Routes>
       </BrowserRouter>

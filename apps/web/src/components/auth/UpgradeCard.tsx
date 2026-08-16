@@ -20,7 +20,7 @@ const PLAN_COPY: Record<UpgradablePlan, { name: string; price: string; descripti
   pro: {
     name: 'Pro',
     price: '$49/mo',
-    description: 'Everything in Edge plus arbitrage and Kalshi/Polymarket.',
+    description: 'Everything in Edge plus ticket ideas and Kalshi/Polymarket.',
   },
 };
 

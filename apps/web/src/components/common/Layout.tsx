@@ -6,6 +6,7 @@ import BookOnboarding from '@/components/auth/BookOnboarding';
 const navItems = [
   { path: '/app', label: 'Odds', end: true },
   { path: '/app/ev', label: 'Edges' },
+  { path: '/app/tickets', label: 'Tickets' },
   { path: '/app/exchanges', label: 'Exchanges' },
   { path: '/app/settings', label: 'Settings' },
 ];
