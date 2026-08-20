@@ -1,53 +1,60 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SPORTS } from '@ny-sharp-edge/shared';
+import { eventInHorizon, inSeasonSport } from '@ny-sharp-edge/shared';
 import OddsGrid from '@/components/odds/OddsGrid';
 import { useOdds } from '@/hooks/useOdds';
-import { useCheckout } from '@/hooks/useCheckout';
+import { useBillingStatus } from '@/hooks/useBillingStatus';
+import { billingErrorMessage } from '@/hooks/useCheckout';
+import { usePlan } from '@/components/auth/AuthProvider';
 import AuthControls from '@/components/auth/AuthControls';
+import LiquidBg from '@/components/common/LiquidBg';
+import BrandMark from '@/components/common/BrandMark';
+import { BRAND, SUPPORT_MAILTO } from '@ny-sharp-edge/shared';
 
 const BULLETS = [
-  'Best price at your books',
+  'Only shops you actually have — NY, NJ, or PA as a shortcut',
+  'A quiet +EV feed. Fat / likely-stale numbers stay hidden',
   'Ticket ideas — parlays and round robins, not locks',
-  'Edges when a number is actually fat',
 ];
 
-const requireAuth = import.meta.env.VITE_REQUIRE_AUTH === 'true';
-
 export default function LandingPage() {
-  const { data, isLoading, error } = useOdds(SPORTS.NFL);
-  const checkout = useCheckout();
-  const [boardOnly, setBoardOnly] = useState(!requireAuth);
+  const { data, isLoading, error } = useOdds(inSeasonSport());
+  const { canCharge } = useBillingStatus();
+  const { startCheckout } = usePlan();
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
 
-  const liveEvents = data?.events.slice(0, 2) ?? [];
+  const soon = (data?.events ?? []).filter((e) => eventInHorizon(e.commenceTime, 'soon'));
+  const liveEvents = (soon.length > 0 ? soon : data?.events ?? []).slice(0, 2);
+  const previewIsSeason = soon.length === 0 && liveEvents.length > 0;
   const linesUnavailable = Boolean(error) || (!isLoading && liveEvents.length === 0);
 
   const handleCheckout = async (plan: 'edge' | 'pro') => {
-    if (boardOnly) {
+    if (!canCharge) {
       window.location.href = '/app';
       return;
     }
-    const result = await checkout(plan);
-    if (result.url) {
-      window.location.href = result.url;
-    } else {
-      setBoardOnly(true);
-    }
+    setCheckoutError(null);
+    setStarting(true);
+    const result = await startCheckout(plan);
+    setStarting(false);
+    if (result.error) setCheckoutError(billingErrorMessage(result.error));
   };
 
   return (
-    <div className="min-h-screen bg-bg text-ink flex flex-col">
-      <header className="h-12 border-b border-line">
-        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-          <Link to="/" className="font-display font-bold tracking-[0.22em] text-lg text-ink">
-            LINEEDGE
+    <div className="liquid-scene text-ink flex flex-col min-h-dvh">
+      <LiquidBg />
+      <header
+        className="sticky top-0 z-40 glass-strong"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2 min-w-0">
+          <Link to="/" className="text-[#eef2fb] text-base shrink-0">
+            <BrandMark />
           </Link>
-          <div className="flex items-center gap-4">
-            <AuthControls />
-            <Link
-              to="/app"
-              className="text-[11px] uppercase tracking-[0.18em] bg-moss hover:bg-moss-2 text-ink px-4 py-2"
-            >
+          <div className="flex items-center gap-2 min-w-0">
+            <AuthControls compact />
+            <Link to="/app" className="btn btn-primary px-4 min-h-10 text-[12px] uppercase tracking-[0.12em]">
               Open app
             </Link>
           </div>
@@ -55,73 +62,80 @@ export default function LandingPage() {
       </header>
 
       <section className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-16 md:py-24">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div className="space-y-10">
-              <div className="space-y-6">
-                <h1 className="font-display font-bold text-ink uppercase tracking-tight leading-[0.9] text-[clamp(48px,8vw,92px)]">
-                  FIND +EV
+        <div className="max-w-3xl lg:max-w-5xl mx-auto px-3 sm:px-4 py-8 sm:py-16">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            <div className="space-y-7 min-w-0">
+              <div className="space-y-4">
+                <h1 className="font-display font-bold text-ink uppercase tracking-tight leading-[0.95] text-[clamp(2.1rem,9vw,5.5rem)] break-words">
+                  Best number
                   <br />
-                  WITHOUT A
+                  at the shops
                   <br />
-                  $200 TERMINAL.
+                  you actually use.
                 </h1>
-                <p className="font-mono text-[14px] text-ink-dim max-w-md">
-                  Pinnacle fair odds. US books. Kalshi and Polymarket on Pro. $19/mo.
+                <p className="font-mono text-[13px] sm:text-[14px] text-ink-dim max-w-md leading-relaxed">
+                  NY-first. Your books only. Pinnacle fair line. $19/mo — not a $300 national firehose.
                 </p>
               </div>
 
-              <ol className="space-y-2 font-mono text-[14px] text-ink">
+              <ol className="space-y-2 font-mono text-[13px] text-ink">
                 {BULLETS.map((bullet, i) => (
-                  <li key={bullet} className="flex gap-4">
-                    <span className="text-ink-dim">{String(i + 1).padStart(2, '0')}</span>
-                    <span>{bullet}</span>
+                  <li key={bullet} className="flex gap-3 min-w-0">
+                    <span className="text-ink-dim shrink-0">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="break-words">{bullet}</span>
                   </li>
                 ))}
               </ol>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                {boardOnly ? (
-                  <Link
-                    to="/app"
-                    className="inline-flex justify-center items-center bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
-                  >
-                    Open the board →
-                  </Link>
-                ) : (
+              <div className="flex flex-col gap-2">
+                {canCharge ? (
                   <>
                     <button
                       type="button"
                       onClick={() => handleCheckout('edge')}
-                      className="inline-flex justify-center items-center bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
+                      disabled={starting}
+                      className="btn btn-primary w-full"
                     >
                       Start with Edge — $19/mo
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCheckout('pro')}
-                      className="inline-flex justify-center items-center border border-moss text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3 hover:bg-moss"
+                      disabled={starting}
+                      className="btn btn-secondary w-full"
                     >
                       Go Pro — $49/mo
                     </button>
                   </>
+                ) : (
+                  <Link to="/app" className="btn btn-primary w-full">
+                    Open the board
+                  </Link>
+                )}
+                {checkoutError && (
+                  <p className="font-mono text-[12px] text-bad">{checkoutError}</p>
                 )}
               </div>
             </div>
 
-            <div className="border border-line overflow-hidden max-h-[520px] pointer-events-none">
+            <div className="glass rounded-2xl overflow-hidden min-w-0 pointer-events-none">
               {isLoading && (
-                <div className="p-8 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-dim">
+                <div className="p-6 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim">
                   Loading live lines…
                 </div>
               )}
               {linesUnavailable && (
-                <div className="p-8 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-dim">
-                  LIVE LINES UNAVAILABLE
+                <div className="p-6 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim">
+                  Live lines unavailable
                 </div>
               )}
               {!isLoading && !linesUnavailable && (
-                <div className="p-3">
+                <div className="p-2.5">
+                  {previewIsSeason && (
+                    <p className="font-mono text-[11px] text-ink-dim px-1 pb-2">
+                      Nothing tonight — next season slate.
+                    </p>
+                  )}
                   <OddsGrid events={liveEvents} />
                 </div>
               )}
@@ -130,67 +144,71 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-t border-line">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <p className="label mb-8">Price</p>
-          <div className="grid md:grid-cols-2 gap-0 max-w-xl border border-line">
-            <div className="p-6 border-b md:border-b-0 md:border-r border-line">
+      <section className="px-3 sm:px-4 pb-10">
+        <div className="max-w-3xl lg:max-w-5xl mx-auto">
+          <p className="label mb-4">Price</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="glass rounded-2xl p-5">
               <p className="label">Edge</p>
-              <p className="font-mono text-[48px] leading-none text-ink mt-4">$19</p>
-              <p className="font-mono text-[12px] text-ink-dim mt-2">/mo · live books + +EV</p>
-              {boardOnly ? (
-                <Link
-                  to="/app"
-                  className="mt-6 inline-block font-mono text-[13px] text-lichen hover:text-ink"
-                >
-                  Open the board →
-                </Link>
-              ) : (
+              <p className="font-mono text-[40px] leading-none text-ink mt-3">$19</p>
+              <p className="font-mono text-[12px] text-ink-dim mt-2">/mo · live books at your shops + quiet +EV</p>
+              {canCharge ? (
                 <button
                   type="button"
                   onClick={() => handleCheckout('edge')}
-                  className="mt-6 font-mono text-[13px] text-lichen hover:text-ink"
+                  disabled={starting}
+                  className="mt-5 font-mono text-[13px] text-lichen"
                 >
                   Get Edge
                 </button>
+              ) : (
+                <Link to="/app" className="mt-5 inline-block font-mono text-[13px] text-lichen">
+                  Open the board
+                </Link>
               )}
             </div>
-            <div className="p-6">
+            <div className="glass rounded-2xl p-5">
               <p className="label">Pro</p>
-              <p className="font-mono text-[48px] leading-none text-ink mt-4">$49</p>
-              <p className="font-mono text-[12px] text-ink-dim mt-2">/mo · arb + exchanges</p>
-              {boardOnly ? (
-                <Link
-                  to="/app"
-                  className="mt-6 inline-block font-mono text-[13px] text-lichen hover:text-ink"
-                >
-                  Open the board →
-                </Link>
-              ) : (
+              <p className="font-mono text-[40px] leading-none text-ink mt-3">$49</p>
+              <p className="font-mono text-[12px] text-ink-dim mt-2">/mo · tickets + Kalshi / Polymarket</p>
+              {canCharge ? (
                 <button
                   type="button"
                   onClick={() => handleCheckout('pro')}
-                  className="mt-6 font-mono text-[13px] text-lichen hover:text-ink"
+                  disabled={starting}
+                  className="mt-5 font-mono text-[13px] text-lichen"
                 >
                   Get Pro
                 </button>
+              ) : (
+                <Link to="/app" className="mt-5 inline-block font-mono text-[13px] text-lichen">
+                  Open the board
+                </Link>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-line">
-        <div className="max-w-7xl mx-auto px-4 py-4 font-mono text-[11px] text-ink-dim flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span>LINEEDGE</span>
+      <footer className="px-3 sm:px-4 pb-8" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
+        <div className="max-w-3xl lg:max-w-5xl mx-auto font-mono text-[11px] text-ink-dim flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="lowercase">{BRAND.wordmark}</span>
           <span>·</span>
           <span>18+</span>
           <span>·</span>
           <span>NOT ADVICE</span>
           <span>·</span>
-          <Link to="/legal" className="hover:text-ink">
-            /legal
+          <Link to="/terms" className="hover:text-ink">
+            terms
           </Link>
+          <span>·</span>
+          <Link to="/privacy" className="hover:text-ink">
+            privacy
+          </Link>
+          <span>·</span>
+          <a href={SUPPORT_MAILTO} className="hover:text-ink">
+            {BRAND.supportEmail}
+          </a>
         </div>
       </footer>
     </div>

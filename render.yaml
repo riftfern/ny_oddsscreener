@@ -1,0 +1,44 @@
+# One always-on Node process. Do not add a Static Site, worker, or second web
+# service — the odds cache, Stripe webhook, and Telegram poller are in-memory.
+services:
+  - type: web
+    name: ny_oddsscreener
+    runtime: node
+    plan: starter
+    region: ohio
+    numInstances: 1
+    healthCheckPath: /api/health
+    buildCommand: pnpm install --frozen-lockfile --prod=false && pnpm build
+    startCommand: node apps/api/dist/index.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: USE_MOCK_DATA
+        value: "false"
+      - key: REQUIRE_AUTH
+        value: "true"
+      - key: VITE_REQUIRE_AUTH
+        value: "true"
+      - key: VITE_API_URL
+        value: ""
+      - key: FRONTEND_URL
+        value: https://scharfedge.com
+      - key: ODDS_REGIONS
+        value: us,us2,eu
+      - key: THE_ODDS_API_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_EDGE
+        sync: false
+      - key: STRIPE_PRICE_PRO
+        sync: false

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useExchangeOdds } from '@/hooks/useExchangeOdds';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from '@/components/odds/SportSelector';
@@ -9,7 +9,8 @@ import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
-import { VENUES, type Event, type VenueKind } from '@ny-sharp-edge/shared';
+import { isAbsurdAmerican, VENUES, type Event, type VenueKind } from '@ny-sharp-edge/shared';
+import Chip from '@/components/common/Chip';
 
 const EXCHANGE_KINDS: VenueKind[] = ['prediction', 'exchange'];
 
@@ -28,7 +29,7 @@ function filterExchangeEvents(events: Event[]): Event[] {
             .map((outcome) => ({
               ...outcome,
               bookOdds: outcome.bookOdds.filter((bo) =>
-                EXCHANGE_BOOK_IDS.includes(bo.bookId)
+                EXCHANGE_BOOK_IDS.includes(bo.bookId) && !isAbsurdAmerican(bo.odds)
               ),
               bestOdds:
                 outcome.bestOdds &&
@@ -46,7 +47,6 @@ function filterExchangeEvents(events: Event[]): Event[] {
 export default function ExchangesPage() {
   const { filter } = useOddsStore();
   const [tab, setTab] = useState<'games' | 'other'>('games');
-  const autoSwitchedFor = useRef<string | null>(null);
   const gamesQuery = useExchangeOdds(filter.sport, false);
   const otherQuery = useExchangeOdds(filter.sport, true);
   const debug = useDebugMode();
@@ -58,15 +58,6 @@ export default function ExchangesPage() {
     setTab('games');
   }, [filter.sport]);
 
-  useEffect(() => {
-    if (autoSwitchedFor.current === filter.sport) return;
-    if (gamesQuery.isLoading || otherQuery.isLoading) return;
-    if (gamesEvents.length === 0 && otherEvents.length > 0) {
-      setTab('other');
-      autoSwitchedFor.current = filter.sport;
-    }
-  }, [filter.sport, gamesQuery.isLoading, otherQuery.isLoading, gamesEvents.length, otherEvents.length]);
-
   const activeQuery = tab === 'other' ? otherQuery : gamesQuery;
   const exchangeEvents = tab === 'other' ? otherEvents : gamesEvents;
   const isLoading = tab === 'other' ? otherQuery.isLoading : gamesQuery.isLoading;
@@ -75,52 +66,35 @@ export default function ExchangesPage() {
   return (
     <PlanGate requiredPlan="pro">
 
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Exchanges</h1>
-          <p className="text-ink-dim font-mono text-[13px] mt-1">
-            Kalshi and Polymarket leftovers. Matched game lines also show on Odds.
-          </p>
+    <div className="space-y-4 min-w-0">
+      <div className="min-w-0">
+        <div className="flex items-end justify-between gap-3">
+          <h1 className="font-display font-bold text-ink tracking-tight text-[1.75rem] leading-none">
+            Exchanges
+          </h1>
+          {activeQuery.dataUpdatedAt && (
+            <p className="font-mono text-[11px] text-ink-dim shrink-0">
+              {new Date(activeQuery.dataUpdatedAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
+            </p>
+          )}
         </div>
-
-        {activeQuery.dataUpdatedAt && (
-          <div className="font-mono text-[11px] text-ink-dim">
-            {new Date(activeQuery.dataUpdatedAt).toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              second: '2-digit',
-            })}
-          </div>
-        )}
+        <p className="text-ink-dim font-mono text-[13px] mt-2 leading-snug">
+          Kalshi and Polymarket leftovers. Matched game lines also show on Odds.
+        </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="glass rounded-2xl p-3 space-y-3">
         <SportSelector />
-
-        <div className="flex gap-1">
-          <button
-            type="button"
-            onClick={() => setTab('games')}
-            className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
-              tab === 'games'
-                ? 'bg-moss text-ink border-moss'
-                : 'bg-transparent text-ink-dim border-line hover:text-ink'
-            }`}
-          >
+        <div className="flex flex-wrap gap-1.5">
+          <Chip onClick={() => setTab('games')} active={tab === 'games'}>
             Games
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('other')}
-            className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
-              tab === 'other'
-                ? 'bg-moss text-ink border-moss'
-                : 'bg-transparent text-ink-dim border-line hover:text-ink'
-            }`}
-          >
-            Other markets
-          </button>
+          </Chip>
+          <Chip onClick={() => setTab('other')} active={tab === 'other'}>
+            Other
+          </Chip>
         </div>
       </div>
 
@@ -133,7 +107,7 @@ export default function ExchangesPage() {
       )}
 
       {error && !(error instanceof ApiError && error.status === 402) && (
-        <div className="border border-bad p-4">
+        <div className="glass rounded-2xl p-4">
           <p className="text-bad font-mono text-[13px]">
             Failed to load exchange odds. Make sure the API server is running.
           </p>
@@ -141,9 +115,12 @@ export default function ExchangesPage() {
       )}
 
       {!isLoading && !error && exchangeEvents.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center py-12 space-y-3">
           <p className="text-ink-dim uppercase tracking-[0.18em] text-[11px]">
-            NO JOINED EXCHANGE LINE FOR THIS SPORT.
+            No Kalshi / Polymarket line matched this sport
+          </p>
+          <p className="font-mono text-[12px] text-ink-dim max-w-sm mx-auto">
+            This is leftover exchange inventory, not a live sportsbook. Check Odds for US books.
           </p>
         </div>
       )}

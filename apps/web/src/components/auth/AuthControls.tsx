@@ -3,9 +3,9 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useAuth } 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
 
 const ghost =
-  'text-[11px] uppercase tracking-[0.18em] text-ink-dim hover:text-ink bg-transparent border-0 p-0 cursor-pointer';
+  'text-[11px] uppercase tracking-[0.12em] text-[#c9bde8] hover:text-[#eef2fb] bg-transparent border-0 p-0 cursor-pointer';
 const solid =
-  'text-[11px] uppercase tracking-[0.18em] bg-moss hover:bg-moss-2 text-ink px-4 py-2 cursor-pointer border-0';
+  'text-[11px] uppercase tracking-[0.12em] bg-moss hover:bg-moss-2 text-[#eef2fb] px-3 py-2 rounded-full cursor-pointer border-0';
 
 /** Sign in / Sign up / account. Hidden until a publishable key exists. */
 export default function AuthControls({ compact = false }: { compact?: boolean }) {
@@ -33,18 +33,20 @@ function AuthControlsInner({ compact }: { compact: boolean }) {
             Sign in
           </button>
         </SignInButton>
-        <SignUpButton mode="modal">
-          <button type="button" className={solid}>
-            Sign up
-          </button>
-        </SignUpButton>
+        {!compact && (
+          <SignUpButton mode="modal">
+            <button type="button" className={solid}>
+              Sign up
+            </button>
+          </SignUpButton>
+        )}
       </SignedOut>
       <SignedIn>
         <UserButton
           appearance={{
             elements: {
-              avatarBox: compact ? 'h-7 w-7' : 'h-8 w-8',
-              userButtonAvatarBox: 'rounded-none',
+              avatarBox: compact ? 'h-7 w-7 rounded-full' : 'h-8 w-8 rounded-full',
+              userButtonAvatarBox: 'rounded-full',
             },
           }}
         />

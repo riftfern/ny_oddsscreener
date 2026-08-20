@@ -1,18 +1,20 @@
 import { create } from 'zustand';
-import type { SportKey, MarketType, OddsFilter } from '@ny-sharp-edge/shared';
-import { SPORTS, SPORTSBOOKS } from '@ny-sharp-edge/shared';
+import type { SportKey, MarketType, OddsFilter, EventHorizon } from '@ny-sharp-edge/shared';
+import { inSeasonSport, SPORTSBOOKS } from '@ny-sharp-edge/shared';
 
 interface OddsStore {
   filter: OddsFilter;
+  horizon: EventHorizon;
   setSport: (sport: SportKey) => void;
   setDate: (date: OddsFilter['date']) => void;
   setMarketType: (marketType: MarketType | 'all') => void;
+  setHorizon: (horizon: EventHorizon) => void;
   toggleBook: (bookId: string) => void;
   resetFilters: () => void;
 }
 
 const defaultFilter: OddsFilter = {
-  sport: SPORTS.NFL,
+  sport: inSeasonSport(),
   date: 'today',
   marketType: 'h2h',
   // Include Pinnacle so the fair-line column is visible by default.
@@ -21,6 +23,7 @@ const defaultFilter: OddsFilter = {
 
 export const useOddsStore = create<OddsStore>((set) => ({
   filter: defaultFilter,
+  horizon: 'soon',
 
   setSport: (sport) =>
     set((state) => ({
@@ -37,6 +40,8 @@ export const useOddsStore = create<OddsStore>((set) => ({
       filter: { ...state.filter, marketType },
     })),
 
+  setHorizon: (horizon) => set({ horizon }),
+
   toggleBook: (bookId) =>
     set((state) => {
       const books = state.filter.books.includes(bookId)
@@ -45,5 +50,5 @@ export const useOddsStore = create<OddsStore>((set) => ({
       return { filter: { ...state.filter, books } };
     }),
 
-  resetFilters: () => set({ filter: defaultFilter }),
+  resetFilters: () => set({ filter: defaultFilter, horizon: 'soon' }),
 }));

@@ -1,6 +1,6 @@
-# LineEdge API
+# scharfedge API
 
-Express API for the LineEdge odds screener. Serves the Vite React frontend and
+Express API for the scharfedge odds screener. Serves the Vite React frontend and
 fetches/transforms data from The Odds API.
 
 ## Running

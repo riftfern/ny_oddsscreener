@@ -4,7 +4,7 @@ interface StaleBannerProps {
 
 export default function StaleBanner({ cachedAt }: StaleBannerProps) {
   return (
-    <div className="border border-warn p-3 flex items-center gap-3">
+    <div className="glass rounded-2xl p-3 flex items-center gap-3">
       <div className="flex-1">
         <p className="text-warn text-[11px] uppercase tracking-[0.18em] font-medium">
           Showing last good lines — live fetch failed.

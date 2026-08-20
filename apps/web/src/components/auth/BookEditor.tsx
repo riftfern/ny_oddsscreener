@@ -31,7 +31,7 @@ export default function BookEditor({ onClose }: { onClose?: () => void }) {
         <div>
           <h2 className="font-display font-bold text-ink text-xl">Your books</h2>
           <p className="font-mono text-[13px] text-ink-dim mt-1">
-            Tap to add or remove. The board only shows these.
+            State is a shortcut. The board only shows shops you keep on.
           </p>
         </div>
         {onClose && (
@@ -59,7 +59,7 @@ export default function BookEditor({ onClose }: { onClose?: () => void }) {
         type="button"
         disabled={saving}
         onClick={() => void save()}
-        className="bg-moss hover:bg-moss-2 text-ink text-[11px] uppercase tracking-[0.14em] font-semibold px-6 py-3"
+        className="btn btn-primary w-full"
       >
         {saving ? 'Saving…' : 'Save books'}
       </button>

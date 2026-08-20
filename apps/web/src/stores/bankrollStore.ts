@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SportsbookId, MarketType } from '@ny-sharp-edge/shared';
+import type { MarketType } from '@ny-sharp-edge/shared';
 
 export type TransactionType = 'deposit' | 'withdrawal' | 'bet' | 'settlement';
 export type BetStatus = 'pending' | 'won' | 'lost' | 'push';
@@ -10,7 +10,7 @@ export interface BetRecord {
   eventDescription: string;
   outcomeName: string;
   marketType: MarketType;
-  bookId: SportsbookId;
+  bookId: string;
   odds: number;
   stake: number;
   status: BetStatus;
@@ -40,7 +40,7 @@ interface BankrollStore {
     eventDescription: string;
     outcomeName: string;
     marketType: MarketType;
-    bookId: SportsbookId;
+    bookId: string;
     odds: number;
     stake: number;
   }) => void;

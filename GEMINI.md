@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-LineEdge is a sportsbook odds screener and +EV betting tool. It's a full-stack application built with a React frontend, a Node.js/Express backend, and a shared library for types and calculations. The project is structured as a pnpm monorepo and uses Turborepo for build orchestration. The git folder is still ny_oddsscreener.
+scharfedge (scharfedge.com) is a NY-first sportsbook odds screener and quiet +EV betting tool. It's a full-stack application built with a React frontend, a Node.js/Express backend, and a shared library for types and calculations. The project is structured as a pnpm monorepo and uses Turborepo for build orchestration. The git folder is still ny_oddsscreener.
 
 **Frontend:**
 - React 18, TypeScript, Vite

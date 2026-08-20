@@ -28,15 +28,29 @@ async function authHeaders(): Promise<Record<string, string>> {
   return headers;
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers: await authHeaders(),
-  });
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({ error: 'unknown' }));
-    throw new ApiError(`API error: ${response.status} ${response.statusText}`, response.status, body);
+async function fetchJson<T>(url: string, timeoutMs = 8000): Promise<T> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      headers: await authHeaders(),
+      signal: ctrl.signal,
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({ error: 'unknown' }));
+      throw new ApiError(`API error: ${response.status} ${response.statusText}`, response.status, body);
+    }
+    return await response.json();
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    const name = err instanceof Error ? err.name : '';
+    if (name === 'AbortError' || name === 'TimeoutError') {
+      throw new ApiError('API error: timeout', 0, { error: 'timeout' });
+    }
+    throw new ApiError('API error: network', 0, { error: 'network' });
+  } finally {
+    clearTimeout(timer);
   }
-  return response.json();
 }
 
 export interface SharpCoverage {
@@ -81,7 +95,7 @@ export interface ArbitrageResponse {
 
 export const api = {
   getOdds: async (sport: SportKey): Promise<OddsResponse> => {
-    return fetchJson(`/odds?sport=${sport}`);
+    return fetchJson(`/odds?sport=${sport}`, 20000);
   },
 
   getExchangeOdds: async (sport: SportKey, unmatched?: boolean): Promise<OddsResponse> => {
@@ -95,7 +109,7 @@ export const api = {
     if (minEV !== undefined) params.set('minEV', minEV.toString());
     if (sport) params.set('sport', sport);
     const qs = params.toString();
-    return fetchJson(`/ev${qs ? `?${qs}` : ''}`);
+    return fetchJson(`/ev${qs ? `?${qs}` : ''}`, 20000);
   },
 
   getArbitrageOpportunities: async (minProfit?: number, totalStake?: number): Promise<ArbitrageResponse> => {
@@ -116,11 +130,15 @@ export const api = {
     snapshots: boolean;
     remainingCredits?: number;
   }> => {
-    return fetchJson('/health');
+    return fetchJson('/health', 4000);
   },
 
   getSettings: async (): Promise<{ telegram: { configured: boolean; mockDisabled: boolean } }> => {
     return fetchJson('/settings');
+  },
+
+  getBillingStatus: async (): Promise<{ configured: boolean; authRequired: boolean }> => {
+    return fetchJson('/billing/status', 4000);
   },
 
   createCheckoutSession: async (plan: 'edge' | 'pro'): Promise<{ url?: string; error?: string }> => {
@@ -132,6 +150,18 @@ export const api = {
     if (!response.ok) {
       const body = await response.json().catch(() => ({ error: 'unknown' }));
       return { error: body.error ?? 'checkout_failed' };
+    }
+    return response.json();
+  },
+
+  createPortalSession: async (): Promise<{ url?: string; error?: string }> => {
+    const response = await fetch(`${API_BASE}/billing/portal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({ error: 'unknown' }));
+      return { error: body.error ?? 'portal_failed' };
     }
     return response.json();
   },

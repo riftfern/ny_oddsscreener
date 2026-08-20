@@ -10,7 +10,7 @@ export default function SharpCoverageNotice({ coverage }: SharpCoverageNoticePro
   if (coverage.eventsWithSharp > 0) return null;
 
   return (
-    <div className="border border-warn p-3">
+    <div className="glass rounded-2xl p-3">
       <p className="text-warn text-[11px] uppercase tracking-[0.14em]">
         No Pinnacle / sharp line for this sport right now. +EV needs a sharp book. Try NFL or MLB.
       </p>

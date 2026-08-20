@@ -9,7 +9,7 @@ export default function DebugFooter({ cachedAt, remainingCredits }: DebugFooterP
     : undefined;
 
   return (
-    <div className="text-[11px] text-ink-dim font-mono mt-4 border-t border-line pt-2">
+    <div className="text-[11px] text-ink-dim font-mono mt-4 border-t-2 border-line pt-2 break-words">
       debug | cache age: {ageSeconds !== undefined ? `${ageSeconds}s` : 'n/a'}
       {remainingCredits !== undefined && ` | credits remaining: ${remainingCredits}`}
     </div>

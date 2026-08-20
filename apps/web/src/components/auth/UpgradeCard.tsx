@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCheckout } from '@/hooks/useCheckout';
-
-const requireAuth = import.meta.env.VITE_REQUIRE_AUTH === 'true';
+import { usePlan } from '@/components/auth/AuthProvider';
+import { useBillingStatus } from '@/hooks/useBillingStatus';
+import { billingErrorMessage } from '@/hooks/useCheckout';
 
 type UpgradablePlan = 'edge' | 'pro';
 
@@ -15,7 +15,7 @@ const PLAN_COPY: Record<UpgradablePlan, { name: string; price: string; descripti
   edge: {
     name: 'Edge',
     price: '$19/mo',
-    description: 'Live US books, +EV vs Pinnacle, 6 sports.',
+    description: 'Live books at your shops, quiet +EV vs Pinnacle, 6 sports.',
   },
   pro: {
     name: 'Pro',
@@ -28,45 +28,45 @@ export default function UpgradeCard({
   requiredPlan,
   title = 'Upgrade to unlock this screen',
 }: UpgradeCardProps) {
-  const checkout = useCheckout();
+  const { startCheckout } = usePlan();
+  const { canCharge } = useBillingStatus();
   const copy = PLAN_COPY[requiredPlan];
-  const [boardOnly, setBoardOnly] = useState(!requireAuth);
+  const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
 
   const handleUpgrade = async () => {
-    const result = await checkout(requiredPlan);
-    if (result.url) {
-      window.location.href = result.url;
-    } else {
-      setBoardOnly(true);
-    }
+    setError(null);
+    setStarting(true);
+    const result = await startCheckout(requiredPlan);
+    setStarting(false);
+    if (result.error) setError(billingErrorMessage(result.error));
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-12 border border-line bg-bg-2 p-8 text-center">
-      <h2 className="font-display font-bold text-ink tracking-tight text-2xl">{title}</h2>
+    <div className="glass rounded-2xl p-6 text-center min-w-0">
+      <h2 className="font-display font-bold text-ink tracking-tight text-xl sm:text-2xl break-words">{title}</h2>
       <p className="mt-2 text-ink-dim font-mono text-sm">{copy.description}</p>
       <div className="mt-6">
         <p className="text-3xl font-mono font-medium text-ink">
           {copy.price}
         </p>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-ink-dim mt-1">Cancel anytime</p>
+        <p className="text-[11px] uppercase tracking-[0.14em] text-ink-dim mt-1">Cancel anytime</p>
       </div>
-      {boardOnly ? (
-        <Link
-          to="/app"
-          className="mt-6 inline-block bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
-        >
-          Open the board →
-        </Link>
-      ) : (
+      {canCharge ? (
         <button
           type="button"
           onClick={handleUpgrade}
-          className="mt-6 inline-block bg-moss hover:bg-moss-2 text-ink font-display font-semibold uppercase tracking-[0.14em] text-[11px] px-6 py-3"
+          disabled={starting}
+          className="mt-6 btn btn-primary w-full"
         >
           Upgrade to {copy.name}
         </button>
+      ) : (
+        <Link to="/app" className="mt-6 btn btn-primary w-full">
+          Open the board
+        </Link>
       )}
+      {error && <p className="mt-3 font-mono text-[12px] text-bad">{error}</p>}
     </div>
   );
 }

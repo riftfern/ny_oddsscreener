@@ -1,115 +1,105 @@
 import { useMemo, useState } from 'react';
 import { useOdds } from '@/hooks/useOdds';
+import { useHorizonAutoSeason } from '@/hooks/useHorizonAutoSeason';
 import { useOddsStore } from '@/stores/oddsStore';
 import SportSelector from './SportSelector';
 import OddsBoard from './OddsBoard';
 import { OddsGridSkeleton } from './OddsGrid';
 import UpgradeCard from '@/components/auth/UpgradeCard';
-import { useCheckout } from '@/hooks/useCheckout';
 import StaleBanner from '@/components/common/StaleBanner';
 import DebugFooter from '@/components/common/DebugFooter';
 import SharpCoverageNotice from '@/components/common/SharpCoverageNotice';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { ApiError } from '@/services/api';
-import { SPORT_INFO, getVenue, isUpcomingEvent, type MarketType } from '@ny-sharp-edge/shared';
+import { SPORT_INFO, booksCaption, getVenue, eventInHorizon, type MarketType } from '@ny-sharp-edge/shared';
+import HorizonChips from '@/components/common/HorizonChips';
+import TonightElsewhere from '@/components/common/TonightElsewhere';
+import HedgeStrip from '@/components/positions/HedgeStrip';
 import { usePlan } from '@/components/auth/AuthProvider';
 import BookEditor from '@/components/auth/BookEditor';
+import Chip from '@/components/common/Chip';
 
 export default function OddsPage() {
-  const { filter, setMarketType } = useOddsStore();
-  const { data, isLoading, error, dataUpdatedAt } = useOdds(filter.sport);
+  const { filter, setMarketType, horizon, setHorizon } = useOddsStore();
+  const { data, isLoading, error, dataUpdatedAt, refetch } = useOdds(filter.sport);
   const debug = useDebugMode();
-  const checkout = useCheckout();
-  const { books } = usePlan();
-  const [horizon, setHorizon] = useState<'soon' | 'all'>('soon');
+  const { books, startCheckout } = usePlan();
   const [editingBooks, setEditingBooks] = useState(false);
 
   const sportName = SPORT_INFO[filter.sport].name;
   const marketType: MarketType = filter.marketType === 'all' ? 'h2h' : filter.marketType;
+  useHorizonAutoSeason(data?.events);
 
   const boardEvents = useMemo(() => {
     const events = data?.events ?? [];
-    const windowed = horizon === 'soon' ? events.filter((e) => isUpcomingEvent(e.commenceTime)) : events;
+    const windowed = events.filter((e) => eventInHorizon(e.commenceTime, horizon));
     return [...windowed].sort(
       (a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime)
     );
   }, [data?.events, horizon]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-bold text-ink tracking-tight text-2xl">Odds</h1>
-          <p className="text-ink-dim font-mono text-[13px] mt-1">
-            {books
-              ? `Your books only. PIN is the fair line.`
-              : 'Best shop to bet. Pinnacle is the fair line.'}
-          </p>
+    <div className="space-y-4 min-w-0">
+      <div className="min-w-0">
+        <div className="flex items-end justify-between gap-3">
+          <h1 className="font-display font-bold text-ink tracking-tight text-[1.75rem] leading-none">
+            Odds
+          </h1>
+          {dataUpdatedAt && (
+            <p className="font-mono text-[11px] text-ink-dim shrink-0">
+              {new Date(dataUpdatedAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
+            </p>
+          )}
         </div>
-
-        {dataUpdatedAt && (
-          <div className="font-mono text-[11px] text-ink-dim">
-            {new Date(dataUpdatedAt).toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              second: '2-digit',
-            })}
-          </div>
-        )}
+        <p className="text-ink-dim font-mono text-[13px] mt-2 leading-snug">
+          {booksCaption(books)}. PIN is the fair line. Tap a price for the slip. Other shops sit under Also. No live in-play.
+        </p>
+        <TonightElsewhere />
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="glass rounded-2xl p-3 space-y-3">
         <SportSelector sharpCoverage={data?.sharpCoverage} />
-
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {([
-            ['h2h', 'Moneyline'],
+            ['h2h', 'ML'],
             ['spreads', 'Spread'],
             ['totals', 'Total'],
           ] as const).map(([value, label]) => (
-            <button
+            <Chip
               key={value}
-              type="button"
               onClick={() => setMarketType(value)}
-              className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border ${
-                marketType === value
-                  ? 'bg-moss text-ink border-moss'
-                  : 'bg-transparent text-ink-dim border-line hover:border-moss hover:text-ink'
-              }`}
+              active={marketType === value}
             >
               {label}
-            </button>
+            </Chip>
           ))}
-          <button
-            type="button"
-            onClick={() => setHorizon((h) => (h === 'soon' ? 'all' : 'soon'))}
-            className="ml-2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] border border-line text-ink-dim hover:text-ink"
-          >
-            {horizon === 'soon' ? 'Next 3 days' : 'All games'}
-          </button>
+          <HorizonChips />
         </div>
       </div>
 
       {books && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="label">Books</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="label mr-1">Books</span>
           {books.map((id) => (
-            <span key={id} className="font-mono text-[11px] text-ink border border-line px-2 py-1">
+            <span key={id} className="chip min-h-8 px-2.5 text-[11px]">
               {getVenue(id).shortName}
             </span>
           ))}
           <button
             type="button"
             onClick={() => setEditingBooks(true)}
-            className="font-mono text-[11px] uppercase tracking-[0.14em] text-lichen hover:text-ink border border-moss px-2 py-1"
+            className="chip text-lichen"
           >
-            + Add book
+            + Add
           </button>
         </div>
       )}
 
       {editingBooks && (
-        <div className="border border-line bg-bg-2 p-5">
+        <div className="glass rounded-2xl p-4">
           <BookEditor onClose={() => setEditingBooks(false)} />
         </div>
       )}
@@ -119,37 +109,38 @@ export default function OddsPage() {
       <SharpCoverageNotice coverage={data?.sharpCoverage} />
 
       {data?.delayed && (
-        <div className="border border-warn p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-warn text-[11px] uppercase tracking-[0.14em]">
+        <div className="glass rounded-2xl p-3 flex flex-col gap-3">
+          <p className="text-warn text-[12px] leading-snug">
             Free tier shows lines delayed 15 minutes. Upgrade to Edge for live Pinnacle +EV.
           </p>
           <button
             type="button"
-            onClick={async () => {
-              const result = await checkout('edge');
-              window.location.href = result.url ?? '/app';
+            onClick={() => {
+              void startCheckout('edge');
             }}
-            className="shrink-0 bg-moss hover:bg-moss-2 text-ink text-[11px] uppercase tracking-[0.14em] font-semibold px-4 py-2 border border-moss"
+            className="btn btn-primary w-full sm:w-auto"
           >
             Upgrade — $19/mo
           </button>
         </div>
       )}
 
-      {isLoading && <OddsGridSkeleton />}
+      {isLoading && !error && <OddsGridSkeleton />}
 
       {error && error instanceof ApiError && error.status === 402 && (
         <UpgradeCard requiredPlan="edge" title="Upgrade to Edge to view live odds" />
       )}
 
       {error && !(error instanceof ApiError && error.status === 402) && (
-        <div className="border border-bad p-4">
-          <p className="text-bad font-mono text-[13px]">
-            Failed to load odds. Make sure the API server is running.
+        <div className="glass rounded-2xl p-4 space-y-3">
+          <p className="text-bad font-mono text-[13px]">Can&apos;t reach the board.</p>
+          <p className="font-mono text-[11px] text-ink-dim">
+            The odds server did not answer. Retry, or run{' '}
+            <code className="px-2 py-1 rounded-lg bg-[#d7f0fb] border-2 border-line">pnpm live</code>.
           </p>
-          <p className="font-mono text-[11px] text-ink-dim mt-2">
-            Run <code className="bg-bg-2 px-2 py-1 border border-line">pnpm live</code> or <code className="bg-bg-2 px-2 py-1 border border-line">pnpm demo</code>
-          </p>
+          <button type="button" onClick={() => void refetch()} className="btn btn-secondary">
+            Retry
+          </button>
         </div>
       )}
 
@@ -162,20 +153,23 @@ export default function OddsPage() {
       {data && data.events.length > 0 && boardEvents.length === 0 && (
         <div className="text-center py-12 space-y-3">
           <p className="text-ink-dim uppercase tracking-[0.18em] text-[11px]">
-            No {sportName} in the next 3 days
+            No {sportName} in this window
           </p>
           <button
             type="button"
-            onClick={() => setHorizon('all')}
+            onClick={() => setHorizon('season')}
             className="font-mono text-[11px] text-lichen hover:text-ink underline underline-offset-2"
           >
-            Show later games ({data.events.length})
+            Show the season ({data.events.length})
           </button>
         </div>
       )}
 
       {boardEvents.length > 0 && (
-        <OddsBoard events={boardEvents} marketType={marketType} shopIds={books} />
+        <>
+          <HedgeStrip events={boardEvents} shopIds={books} />
+          <OddsBoard events={boardEvents} marketType={marketType} shopIds={books} />
+        </>
       )}
 
       {debug && (

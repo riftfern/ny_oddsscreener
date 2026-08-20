@@ -28,6 +28,8 @@ export interface Venue {
   kind: VenueKind;
   regions: RegionKey[];
   isSharp?: boolean;     // pinnacle, and later circa / exchanges
+  /** Sequential if-bets / reverses. Most NY retail books do not offer these. */
+  supportsIfBets?: boolean;
 }
 
 // Every book we may show, keyed by Odds API bookmaker key. Kept alongside
@@ -47,7 +49,7 @@ export const VENUES: Record<string, Venue> = {
   thescore: { id: 'thescore', name: 'theScore Bet', shortName: 'SCR', color: INK_DIM, deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
   bet365: { id: 'bet365', name: 'bet365', shortName: '365', color: INK_DIM, deepLink: 'https://www.bet365.com', kind: 'sportsbook', regions: ['eu'] },
   // US books from other regions / non-NY legal
-  bovada: { id: 'bovada', name: 'Bovada', shortName: 'BOV', color: INK_DIM, deepLink: 'https://www.bovada.lv', kind: 'sportsbook', regions: ['us'] },
+  bovada: { id: 'bovada', name: 'Bovada', shortName: 'BOV', color: INK_DIM, deepLink: 'https://www.bovada.lv', kind: 'sportsbook', regions: ['us'], supportsIfBets: true },
   lowvig: { id: 'lowvig', name: 'LowVig', shortName: 'LV', color: INK_DIM, deepLink: 'https://www.lowvig.ag', kind: 'sportsbook', regions: ['us'] },
   espnbet: { id: 'espnbet', name: 'ESPN BET', shortName: 'ESPN', color: INK_DIM, deepLink: 'https://thescore.bet', kind: 'sportsbook', regions: ['us2'] },
   betonlineag: { id: 'betonlineag', name: 'BetOnline AG', shortName: 'BOAG', color: INK_DIM, deepLink: '', kind: 'sportsbook', regions: ['us'] },
@@ -131,6 +133,11 @@ export function getVenue(bookId: string): Venue {
   return fallbackVenue(bookId);
 }
 
+export function shopHref(bookId: string): string | undefined {
+  const href = getVenue(bookId).deepLink?.trim();
+  return href ? href : undefined;
+}
+
 export interface Sportsbook {
   id: SportsbookId;
   name: string;
@@ -165,6 +172,14 @@ export const SPORTS = {
 } as const;
 
 export type SportKey = (typeof SPORTS)[keyof typeof SPORTS];
+
+/** Sport a NY retail user is most likely looking for tonight. */
+export function inSeasonSport(now: Date = new Date()): SportKey {
+  const m = now.getMonth();
+  if (m >= 8 || m === 0) return SPORTS.NFL; // Sep–Jan
+  if (m >= 1 && m <= 5) return SPORTS.NBA; // Feb–Jun
+  return SPORTS.MLB; // Jul–Aug
+}
 
 export interface Sport {
   key: SportKey;
@@ -293,6 +308,15 @@ export interface OddsFilter {
 }
 
 // Betslip Types
+export type SlipShape =
+  | 'straight'
+  | 'sgp'
+  | 'round_robin'
+  | 'teaser'
+  | 'if_bet'
+  | 'reverse'
+  | 'window';
+
 export interface BetSelection {
   id: string;
   eventId: string;
@@ -304,8 +328,34 @@ export interface BetSelection {
   line?: number;
   stake: number;
   addedAt: string;
+  shape?: SlipShape;
+  shapeId?: string;
+  /** Teaser juice is unknown — do not show straight -110 as the tease price. */
+  hideOdds?: boolean;
+  sequence?: 'if' | 'then';
+  teasePoints?: number;
+  windowGap?: number;
+  hedgeOf?: string;
+}
+
+/** One line on the slip. Does not append a number that is already in the name. */
+export function formatPick(
+  name: string,
+  line?: number,
+  marketType?: MarketType
+): string {
+  const trimmed = name.trim();
+  if (line === undefined || marketType === 'h2h') return trimmed;
+  const lineStr = String(line);
+  const escaped = lineStr.replace('.', '\\.');
+  if (new RegExp(`(?:^|\\s|→\\s*)\\+?${escaped}\\s*$`).test(trimmed)) return trimmed;
+  if (marketType === 'totals') return `${trimmed} ${lineStr}`;
+  const signed = line > 0 ? `+${line}` : lineStr;
+  if (trimmed.endsWith(signed) || trimmed.endsWith(lineStr)) return trimmed;
+  return `${trimmed} ${signed}`;
 }
 
 export * from './tennis.js';
 export * from './shops.js';
 export * from './userBooks.js';
+export * from './alts.js';

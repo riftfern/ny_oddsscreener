@@ -30,7 +30,10 @@ API_PID=$!
 
 (
   cd "$ROOT/apps/web"
-  exec env VITE_DEV_PLAN=pro VITE_REQUIRE_AUTH=false pnpm exec vite
+  # Empty VITE_API_URL so the browser hits same-origin /api (Vite proxy).
+  # apps/web/.env points at http://localhost:3001, which is this machine only
+  # and breaks a phone on the LAN / a public tunnel.
+  exec env VITE_DEV_PLAN=pro VITE_REQUIRE_AUTH=false VITE_API_URL= pnpm exec vite
 ) &
 WEB_PID=$!
 

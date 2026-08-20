@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VENUES, SPORTSBOOKS, getVenue, humanizeBookId, getSport, SPORT_INFO } from './index';
+import { VENUES, SPORTSBOOKS, getVenue, humanizeBookId, getSport, SPORT_INFO, shopHref, formatPick, inSeasonSport, SPORTS } from './index';
 
 describe('VENUES catalog', () => {
   it('contains every key in SPORTSBOOKS', () => {
@@ -68,6 +68,27 @@ describe('getVenue / humanizeBookId', () => {
     expect(getVenue('pinnacle').color).toBe('#c4b07a');
     expect(getVenue('fanduel').color).toBe('#8a8d84');
     expect(getVenue('betmgm').color).toBe('#8a8d84');
+  });
+
+  it('shopHref is omitted when there is no deep link', () => {
+    expect(shopHref('fanduel')).toMatch(/^https:\/\//);
+    expect(shopHref('betonlineag')).toBeUndefined();
+    expect(shopHref('gtbets')).toBeUndefined();
+  });
+});
+
+describe('inSeasonSport / formatPick', () => {
+  it('is MLB in August and NFL in September', () => {
+    expect(inSeasonSport(new Date('2026-08-19T12:00:00'))).toBe(SPORTS.MLB);
+    expect(inSeasonSport(new Date('2026-09-15T12:00:00'))).toBe(SPORTS.NFL);
+  });
+
+  it('does not double a line already in the name', () => {
+    expect(formatPick('Over 8.5', 8.5, 'totals')).toBe('Over 8.5');
+    expect(formatPick('Over', 8.5, 'totals')).toBe('Over 8.5');
+    expect(formatPick('Boston Red Sox -1.5', -1.5, 'spreads')).toBe('Boston Red Sox -1.5');
+    expect(formatPick('Patriots +3.5 → +9.5', 9.5, 'spreads')).toBe('Patriots +3.5 → +9.5');
+    expect(formatPick('New York Yankees', undefined, 'h2h')).toBe('New York Yankees');
   });
 });
 

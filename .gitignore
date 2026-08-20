@@ -42,3 +42,9 @@ apps/api/data/
 
 # Hermes plans/notes
 .hermes/
+
+# Local agent skill copies — not part of the product
+.agents/
+.claude/
+.grok/
+skills-lock.json

@@ -1,4 +1,5 @@
-import { getVenue, selectableVenues } from '@ny-sharp-edge/shared';
+import { getVenue, matchingRegion, REGION_PRESETS, selectableVenues } from '@ny-sharp-edge/shared';
+import Chip from '@/components/common/Chip';
 
 const GROUPS: { label: string; ids: string[] }[] = [
   {
@@ -30,6 +31,7 @@ interface BookPickerProps {
 export default function BookPicker({ selected, onChange }: BookPickerProps) {
   const selectedSet = new Set(selected);
   const known = new Set(selectableVenues().map((v) => v.id));
+  const region = matchingRegion(selected);
 
   const toggle = (id: string) => {
     if (selectedSet.has(id)) onChange(selected.filter((b) => b !== id));
@@ -38,10 +40,28 @@ export default function BookPicker({ selected, onChange }: BookPickerProps) {
 
   return (
     <div className="space-y-6">
+      <div>
+        <p className="label mb-2">Where do you bet?</p>
+        <p className="font-mono text-[12px] text-ink-dim mb-2 leading-snug">
+          A state just fills the shops you can open there. Drop any you don&apos;t have.
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {REGION_PRESETS.map((preset) => (
+            <Chip
+              key={preset.id}
+              active={region?.id === preset.id}
+              onClick={() => onChange([...preset.books])}
+            >
+              {preset.shortLabel}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
       {GROUPS.map((group) => (
         <div key={group.label}>
           <p className="label mb-2">{group.label}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {group.ids.filter((id) => known.has(id)).map((id) => {
               const venue = getVenue(id);
               const on = selectedSet.has(id);
@@ -50,10 +70,10 @@ export default function BookPicker({ selected, onChange }: BookPickerProps) {
                   key={id}
                   type="button"
                   onClick={() => toggle(id)}
-                  className={`text-left px-3 py-3 border ${
+                  className={`text-left px-3 py-3 rounded-2xl border min-w-0 ${
                     on
-                      ? 'bg-moss text-ink border-moss'
-                      : 'bg-transparent text-ink border-line hover:border-moss'
+                      ? 'bg-moss text-[#eef2fb] border-line'
+                      : 'bg-[#eef2fb] text-ink border-line'
                   }`}
                 >
                   <span className="block font-display font-semibold text-[15px] leading-tight">

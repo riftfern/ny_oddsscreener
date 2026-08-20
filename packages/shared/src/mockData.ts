@@ -43,6 +43,7 @@ function generateBookOdds(baseOdds: number, line?: number, includeExchange = fal
     books.push(
       { bookId: 'kalshi', odds: baseOdds, line, updatedAt: now },
       { bookId: 'polymarket', odds: baseOdds, line, updatedAt: now },
+      { bookId: 'bovada', odds: baseOdds, line, updatedAt: now },
     );
   }
   return books;
@@ -142,6 +143,22 @@ const NFL_EVENTS: Event[] = [
     ],
   },
 ];
+
+/** Fat dog / under at DraftKings so Tickets can deal a real cross-book window. */
+function fattenDraftKingsPlusLines(event: Event, extra: number): void {
+  for (const market of event.markets) {
+    for (const outcome of market.outcomes) {
+      for (const bo of outcome.bookOdds) {
+        if (bo.bookId === 'draftkings' && bo.line !== undefined && bo.line > 0) {
+          bo.line += extra;
+        }
+      }
+    }
+  }
+}
+
+fattenDraftKingsPlusLines(NFL_EVENTS[0], 1.5);
+fattenDraftKingsPlusLines(NFL_EVENTS[1], 1.5);
 
 // --- NBA Mock Data ---
 const NBA_EVENTS: Event[] = [

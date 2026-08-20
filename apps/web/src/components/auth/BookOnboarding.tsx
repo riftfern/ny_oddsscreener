@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { DEFAULT_NY_BOOKS } from '@ny-sharp-edge/shared';
 import { usePlan } from '@/components/auth/AuthProvider';
 import BookPicker from '@/components/auth/BookPicker';
 
 export default function BookOnboarding() {
   const { setBooks } = usePlan();
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([...DEFAULT_NY_BOOKS]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +28,7 @@ export default function BookOnboarding() {
           Which books do you have?
         </h1>
         <p className="font-mono text-[14px] text-ink-dim mt-3">
-          We only show prices at shops you can actually open. You can add more any time.
+          New York is filled in. Switch state or tap shops off. We only show prices you can actually open.
         </p>
       </div>
 
@@ -39,7 +40,7 @@ export default function BookOnboarding() {
         type="button"
         disabled={selected.length === 0 || saving}
         onClick={() => void save()}
-        className="bg-moss hover:bg-moss-2 disabled:opacity-40 text-ink text-[11px] uppercase tracking-[0.14em] font-semibold px-6 py-3"
+        className="btn btn-primary w-full disabled:opacity-40"
       >
         {saving ? 'Saving…' : `Show my books${selected.length ? ` (${selected.length})` : ''}`}
       </button>

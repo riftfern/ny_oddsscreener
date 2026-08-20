@@ -4,111 +4,215 @@
 
 @layer base {
   :root {
-    --bg: #121411;
-    --bg-2: #1a1d19;
-    --line: #2a2e28;
-    --ink: #e6e4dc;
-    --ink-dim: #8a8d84;
-    --moss: #2f5d3a;
-    --moss-2: #3f7a4c;
-    --lichen: #9cb89a;
-    --pin: #c4b07a;
-    --warn: #b56a2b;
-    --bad: #8f3d32;
+    --bg: #6eb5e0;
+    --bg-2: #eef2fb;
+    --line: #2a1854;
+    --ink: #2a1854;
+    --ink-dim: #5e4b86;
+    --moss: #3d6fd8;
+    --moss-2: #5b88e6;
+    --lichen: #2f9e5a;
+    --pin: #c99212;
+    --warn: #e07a2f;
+    --bad: #c23b5a;
+    --violet: #6b4ca0;
+    --sky: #7ec8f0;
+    --grass: #4eae62;
+    --chrome: #2a1854;
+    --chrome-ink: #eef2fb;
+    --radius: 0.85rem;
 
-    /* Unused shadcn light vars — must not be the look. */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 80 8% 17%;
-    --input: 80 8% 17%;
-    --ring: 80 8% 17%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0;
-  }
-  .dark {
-    --background: 120 6% 7%;
-    --foreground: 48 16% 88%;
-    --card: 120 6% 10%;
-    --card-foreground: 48 16% 88%;
-    --popover: 120 6% 10%;
-    --popover-foreground: 48 16% 88%;
-    --primary: 137 32% 27%;
-    --primary-foreground: 48 16% 88%;
-    --secondary: 120 6% 10%;
-    --secondary-foreground: 48 16% 88%;
-    --muted: 120 6% 10%;
-    --muted-foreground: 80 4% 54%;
-    --accent: 137 32% 27%;
-    --accent-foreground: 48 16% 88%;
-    --destructive: 6 48% 38%;
-    --destructive-foreground: 48 16% 88%;
-    --border: 80 8% 17%;
-    --input: 80 8% 17%;
-    --ring: 80 8% 17%;
-    --chart-1: 137 32% 27%;
-    --chart-2: 80 4% 54%;
-    --chart-3: 37 27% 62%;
-    --chart-4: 30 61% 44%;
-    --chart-5: 6 48% 38%;
+    --background: 46 100% 92%;
+    --foreground: 258 56% 21%;
+    --card: 46 100% 92%;
+    --card-foreground: 258 56% 21%;
+    --popover: 46 100% 92%;
+    --popover-foreground: 258 56% 21%;
+    --primary: 45 90% 57%;
+    --primary-foreground: 258 56% 21%;
+    --secondary: 258 42% 40%;
+    --secondary-foreground: 46 100% 92%;
+    --muted: 46 60% 86%;
+    --muted-foreground: 258 28% 40%;
+    --accent: 145 54% 40%;
+    --accent-foreground: 46 100% 92%;
+    --destructive: 346 55% 50%;
+    --destructive-foreground: 46 100% 92%;
+    --border: 258 48% 32%;
+    --input: 258 48% 32%;
+    --ring: 45 90% 57%;
+    --chart-1: 45 90% 57%;
+    --chart-2: 145 54% 40%;
+    --chart-3: 258 42% 40%;
+    --chart-4: 199 70% 55%;
+    --chart-5: 346 55% 50%;
   }
 
   * {
     @apply border-line;
-    border-radius: 0;
-    box-shadow: none;
+    box-sizing: border-box;
+  }
+
+  html {
+    background-color: var(--bg);
+    color: var(--ink);
+    overflow-x: clip;
+    max-width: 100%;
   }
 
   html,
   body,
   #root {
-    background-color: var(--bg);
+    min-width: 0;
+    max-width: 100%;
     color: var(--ink);
-    font-family: "Archivo Narrow", sans-serif;
+    font-family: Nunito, "Segoe UI", sans-serif;
   }
 
   body {
     @apply antialiased;
+    background: transparent;
+    overflow-x: clip;
+    min-height: 100dvh;
+  }
+
+  #root {
+    overflow-x: clip;
+    min-height: 100dvh;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
   }
 }
 
 @layer components {
+  .liquid-scene {
+    position: relative;
+    isolation: isolate;
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  .liquid-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, #8fd0f5 0%, #6eb5e0 38%, #7ec07a 72%, #4eae62 100%);
+  }
+
+  .johto-sun {
+    position: absolute;
+    top: 3.4rem;
+    right: -1.1rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: 9999px;
+    background: #ffe566;
+    border: 3px solid #3d2a78;
+    box-shadow: 4px 4px 0 #3d2a78;
+  }
+
+  .johto-hill {
+    position: absolute;
+    bottom: -2rem;
+    width: 70%;
+    height: 42%;
+    background: #4eae62;
+    border: 3px solid #3d2a78;
+    border-bottom: 0;
+    border-radius: 50% 50% 0 0;
+  }
+
+  .johto-hill-a {
+    left: -18%;
+    background: #3d8f55;
+  }
+
+  .johto-hill-b {
+    right: -12%;
+    height: 34%;
+    background: #67c57a;
+  }
+
+  .johto-water {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 18%;
+    background:
+      repeating-linear-gradient(
+        180deg,
+        #4aa3d8 0 10px,
+        #3b8fc4 10px 20px
+      );
+    border-top: 3px solid #3d2a78;
+  }
+
+  .glass {
+    background: #eef2fb;
+    border: 3px solid #2a1854;
+    box-shadow: 4px 4px 0 #2a1854;
+  }
+
+  .glass-strong {
+    background: #2a1854;
+    color: #eef2fb;
+    border-bottom: 3px solid #1a0e36;
+    box-shadow: 0 4px 0 #1a0e36;
+  }
+
   .label {
-    @apply uppercase tracking-[0.18em] text-[11px] text-ink-dim;
+    @apply uppercase tracking-[0.14em] text-[11px] text-ink-dim;
+  }
+
+  .chip {
+    @apply inline-flex items-center justify-center min-h-10 px-3.5
+      font-mono text-[12px] tracking-[0.08em] uppercase no-underline;
+    color: var(--ink);
+    background: #eef2fb;
+    border: 2px solid #2a1854;
+    border-radius: 9999px;
+  }
+
+  .chip-on {
+    color: #eef2fb;
+    background: #3d6fd8;
+    border-color: #2a1854;
+    box-shadow: 2px 2px 0 #2a1854;
   }
 
   .btn {
-    @apply px-4 py-2 font-medium;
-    border-radius: 0;
+    @apply inline-flex items-center justify-center min-h-11 px-4 font-semibold;
+    border-radius: 9999px;
+    border: 3px solid #2a1854;
   }
 
   .btn-primary {
-    @apply bg-moss text-ink hover:bg-moss-2;
+    background: #3d6fd8;
+    color: #eef2fb;
+    box-shadow: 3px 3px 0 #2a1854;
+  }
+
+  .btn-primary:hover {
+    background: #5b88e6;
   }
 
   .btn-secondary {
-    @apply border border-moss bg-transparent text-ink hover:bg-moss;
+    background: #eef2fb;
+    color: var(--ink);
+    box-shadow: 3px 3px 0 #2a1854;
   }
 
   .card {
-    @apply bg-bg-2 border border-line;
+    @apply glass rounded-xl;
   }
 
   .odds-positive {
@@ -120,6 +224,12 @@
   }
 
   .best-odds {
-    @apply text-lichen border border-lichen;
+    @apply text-lichen border-2 border-lichen rounded-xl;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .johto-sun {
+    animation: none;
   }
 }
