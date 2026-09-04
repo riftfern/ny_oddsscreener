@@ -61,3 +61,53 @@ export function expandSportKeys(sport: string, now: Date = new Date()): string[]
   if (isTennisGroupKey(sport)) return inSeasonTennisMajorKeys(now);
   return [sport];
 }
+
+/** One upcoming match from the tennis model, as shown on the private court page. */
+export interface TennisLockerMatch {
+  id: string;
+  tour: 'ATP' | 'WTA' | string;
+  tournament: string;
+  surface: string;
+  sportKey: string;
+  commenceTime: string | null;
+  playerA: string;
+  playerB: string;
+  probA: number;
+  probB: number;
+  oddsA: number | null;
+  oddsB: number | null;
+  americanA: number | null;
+  americanB: number | null;
+  evA: number | null;
+  evB: number | null;
+  edgeA: number | null;
+  edgeB: number | null;
+  confidence: number;
+  ratingA: number;
+  ratingB: number;
+  pick: string;
+  pickSide: 'A' | 'B';
+  pickProb: number;
+  pickOdds: number | null;
+  pickAmerican: number | null;
+  pickEv: number | null;
+  isValue: boolean;
+  thinData?: boolean;
+  matchesA?: number;
+  matchesB?: number;
+  bookA?: string | null;
+  bookB?: string | null;
+}
+
+export interface TennisLockerBoard {
+  generatedAt: string;
+  dataThrough: { atp?: string | null; wta?: string | null };
+  ingestedLive: { atp: number; wta: number };
+  totalMatches: number;
+  playersRated: number;
+  matchCount: number;
+  pickCount: number;
+  matches: TennisLockerMatch[];
+  picks: TennisLockerMatch[];
+  disclaimer?: string;
+}

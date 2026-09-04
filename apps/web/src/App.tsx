@@ -10,6 +10,7 @@ import EVPage from '@/components/ev/EVPage';
 import ExchangesPage from '@/components/exchanges/ExchangesPage';
 import SettingsPage from '@/components/settings/SettingsPage';
 import TicketsPage from '@/components/tickets/TicketsPage';
+import LockerPage from '@/components/tennis/LockerPage';
 import NotFound, { AppNotFound } from '@/components/common/NotFound';
 
 function App() {
@@ -26,6 +27,9 @@ function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/legal/terms" element={<Navigate to="/terms" replace />} />
           <Route path="/legal/privacy" element={<Navigate to="/privacy" replace />} />
+
+          {/* Unlisted tennis locker — token in the path, no Clerk, no nav. */}
+          <Route path="/x/t/:token" element={<LockerPage />} />
 
           {/* App shell */}
           <Route

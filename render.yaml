@@ -30,6 +30,8 @@ services:
         value: us,us2,eu
       - key: THE_ODDS_API_KEY
         sync: false
+      - key: TENNIS_LOCKER_TOKEN
+        sync: false
       - key: CLERK_SECRET_KEY
         sync: false
       - key: VITE_CLERK_PUBLISHABLE_KEY

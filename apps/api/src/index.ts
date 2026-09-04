@@ -9,6 +9,7 @@ import evRouter from './routes/ev.js';
 import arbitrageRouter from './routes/arbitrage.js';
 import billingRouter, { handleStripeWebhook } from './routes/billing.js';
 import settingsRouter from './routes/settings.js';
+import tennisRouter from './routes/tennis.js';
 import { requirePlan } from './middleware/plan.js';
 import { telegramAlertPoller } from './services/telegramAlerts.js';
 import { getLastRemainingCredits } from './services/oddsApi.js';
@@ -58,6 +59,7 @@ app.use('/api/ev', requirePlan('edge'), evRouter);
 app.use('/api/arbitrage', requirePlan('pro'), arbitrageRouter);
 app.use('/api/billing', billingRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/tennis', tennisRouter);
 
 // Vite build, same origin as /api (Render: one Web Service).
 const webDist = join(__dirname, '..', '..', 'web', 'dist');

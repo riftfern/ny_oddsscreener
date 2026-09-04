@@ -1,4 +1,10 @@
-import type { Event, SportKey, EVOpportunity, ArbitrageOpportunity } from '@ny-sharp-edge/shared';
+import type {
+  Event,
+  SportKey,
+  EVOpportunity,
+  ArbitrageOpportunity,
+  TennisLockerBoard,
+} from '@ny-sharp-edge/shared';
 
 const API_BASE = `${import.meta.env.VITE_API_URL ?? ''}/api`;
 
@@ -118,6 +124,11 @@ export const api = {
     if (totalStake !== undefined) params.set('totalStake', totalStake.toString());
     const qs = params.toString();
     return fetchJson(`/arbitrage${qs ? `?${qs}` : ''}`);
+  },
+
+  getTennisPicks: async (token: string): Promise<TennisLockerBoard> => {
+    const qs = new URLSearchParams({ k: token });
+    return fetchJson(`/tennis/picks?${qs.toString()}`, 12000);
   },
 
   health: async (): Promise<{
